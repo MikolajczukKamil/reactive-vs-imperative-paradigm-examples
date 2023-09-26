@@ -1,48 +1,35 @@
-import { Route, Routes, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { AppBar, Tab, Tabs, Box, Container } from '@mui/material';
-import { SyntheticEvent } from 'react';
+import { Box, Container, Tab, Tabs } from '@mui/material'
+import { useState }                  from 'react'
 
-import { SomePage } from '../some-page';
-import { RoutesMap } from './roates';
-import { ListWithFilters } from '../list-with-filters';
+import { ListWithFilters } from '../list-with-filters'
+import { SomePage }        from '../some-page'
+
+
+export enum RoutesMap {
+  ListWithFilters,
+  SomePage,
+}
 
 export function App() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const path = location.pathname.replace(/^\//, '')
-
-  function goTo(event: SyntheticEvent, newPage: RoutesMap) {
-    navigate(newPage)
+  const [ path, setPath ] = useState(RoutesMap.ListWithFilters)
+  
+  function goTo(_: unknown, newPage: RoutesMap) {
+    setPath(newPage)
   }
-
+  
   return (
     <>
-      <Box sx={{bgcolor: 'background.paper'}}>
-        <AppBar position="static" color="default">
-          <Tabs value={path} onChange={goTo} centered>
-            <Tab label="Lista z filtrami" value={RoutesMap.ListWithFilters}/>
-            <Tab label="Inny przykład" value={RoutesMap.SomePage}/>
-          </Tabs>
-        </AppBar>
-      </Box>
-
+      <Tabs value={ path } onChange={ goTo } centered>
+        <Tab label="Lista z filtrami" value={ RoutesMap.ListWithFilters } />
+        <Tab label="Inny przykład" value={ RoutesMap.SomePage } />
+      </Tabs>
+      
       <Container maxWidth="xl">
-        <Box sx={{p: 3}}>
-          <Routes>
-            <Route path="/" element={<Navigate to={RoutesMap.ListWithFilters}/>}/>
-
-            <Route
-              path={RoutesMap.ListWithFilters}
-              element={<ListWithFilters/>}
-            />
-
-            <Route
-              path={RoutesMap.SomePage}
-              element={<SomePage/>}
-            />
-          </Routes>
+        <Box sx={ { p: 3 } }>
+          { path === RoutesMap.ListWithFilters && <SomePage /> }
+          { path === RoutesMap.SomePage && <ListWithFilters /> }
         </Box>
       </Container>
     </>
-  );
+  )
 }
