@@ -2,3 +2,17 @@
   display: block;
   padding: 16px;
 }
+
+.filters {
+  margin-bottom: 32px;
+}
+
+.filters-content {
+  gap: 8px;
+  display: flex;
+  padding-bottom: 0 !important;
+}
+
+mat-form-field {
+  flex: 1;
+}
