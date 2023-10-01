@@ -1,26 +1,42 @@
 <ng-container *ngIf="ctx$ | async as ctx">
+  {{
+    [ search$.value, priceMin$.value, priceMax$.value, currency$.value ] | json
+  }}
+
   <mat-card class="filters">
     <mat-card-content class="filters-content">
+
       <mat-form-field appearance="outline">
         <mat-label>Szukaj</mat-label>
-        <input matInput placeholder="Szukaj...">
+        <input matInput placeholder="Szukaj..." name="search" [(ngModel)]="search$.value">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
-
       <mat-form-field appearance="outline">
         <mat-label>Cena minimalna</mat-label>
-        <input matInput placeholder="Cena minimalna">
+        <input
+          type="number"
+          matInput
+          placeholder="Cena minimalna"
+          name="priceMin"
+          [(ngModel)]="priceMin$.value"
+        >
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Cena minimalna</mat-label>
-        <input matInput placeholder="Cena maksymalna">
+        <input
+          type="number"
+          matInput
+          placeholder="Cena maksymalna"
+          name="priceMax"
+          [(ngModel)]="priceMax$.value"
+        >
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" name="currency">
         <mat-label>Waluta</mat-label>
-        <mat-select>
+        <mat-select [(ngModel)]="currency$.value">
           <mat-option value="USD">Dolar</mat-option>
           <mat-option value="EUR">Euro</mat-option>
           <mat-option value="GBP">Funt</mat-option>
@@ -28,12 +44,18 @@
           <mat-option value="PLN">Złoty</mat-option>
         </mat-select>
       </mat-form-field>
+
     </mat-card-content>
   </mat-card>
 
   <mat-progress-bar *ngIf="ctx.loading" mode="indeterminate"></mat-progress-bar>
 
-  <p *ngIf="ctx.error">Wystąpił niespodziwany błąd</p>
+  <ng-container *ngIf="ctx.error">
+    <p>Wystąpił niespodziwany błąd</p>
+
+    <button mat-button (click)="retry$.next()">Sprbuj ponownie</button>
+  </ng-container>
+
 
   <table
     *ngIf="ctx.data"
