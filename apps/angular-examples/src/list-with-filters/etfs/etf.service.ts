@@ -12,14 +12,14 @@ export interface Etf {
 }
 
 export interface Filters {
-  search?: string
-  currency?: string
-  minPrice?: number
-  maxPrice?: number
+  search?: string | null
+  currency?: string | null
+  minPrice?: number | null
+  maxPrice?: number | null
 }
 
 @Injectable({ providedIn: 'root' })
-export class EtfService {
+export class EtfServiceImpl implements EtfService {
   private readonly all$: Observable<Etf[]> = of(allEtfs.filter(e => e.currency !== '—'))
   
   public getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort): Observable<Etf[]> {
@@ -59,14 +59,19 @@ export class EtfService {
       return false
     }
     
-    if (minPrice !== undefined && el.price < minPrice) {
+    if (minPrice && el.price < minPrice) {
       return false
     }
     
-    if (maxPrice !== undefined && el.price > maxPrice) {
+    if (maxPrice && el.price > maxPrice) {
       return false
     }
     
     return true
   }
+}
+
+@Injectable()
+export abstract class EtfService {
+  public abstract getEtfList(page: number, pageSize: number, filters?: Filters, sort?: Sort): Observable<Etf[]>;
 }

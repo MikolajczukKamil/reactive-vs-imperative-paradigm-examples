@@ -1,60 +1,51 @@
-import { AsyncPipe, JsonPipe, NgIf } from '@angular/common'
-import { Component, inject }         from '@angular/core'
-import { FormsModule }               from '@angular/forms'
-import { MatButtonModule }           from '@angular/material/button'
-import { MatCardModule }             from '@angular/material/card'
-import { MatIconModule }             from '@angular/material/icon'
-import { MatInputModule }            from '@angular/material/input'
-import { MatProgressBarModule }      from '@angular/material/progress-bar'
-import { MatSelectModule }           from '@angular/material/select'
-import { MatSortModule, Sort }       from '@angular/material/sort'
-import { MatTableModule }            from '@angular/material/table'
+import { AsyncPipe, JsonPipe, NgIf }                                from '@angular/common'
+import { Component, inject, Signal, signal }                        from '@angular/core'
 import {
-  BehaviorSubject,
-  combineLatest,
-  debounceTime,
-  Observable,
-  retry,
-  startWith,
-  Subject,
-  switchMap,
-  tap, throttleTime,
-} from 'rxjs'
+  toSignal,
+}                                                                   from '@angular/core/rxjs-interop'
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms'
+import { MatButtonModule }                                          from '@angular/material/button'
+import { MatCardModule }                                            from '@angular/material/card'
+import { MatIconModule }                                            from '@angular/material/icon'
+import { MatInputModule }                                           from '@angular/material/input'
+import {
+  MatProgressBarModule,
+}                                                                   from '@angular/material/progress-bar'
+import { MatSelectModule }                                          from '@angular/material/select'
+import { MatSortModule, Sort }                                      from '@angular/material/sort'
+import { MatTableModule }                                           from '@angular/material/table'
+import { map, retry, Subject, switchMap, tap, throttleTime }        from 'rxjs'
 
 import { Etf, EtfService } from './etfs'
 
 
-interface Ctx {
-  loading: boolean
-  error: boolean
-  data: Etf[] | null
-}
+const THROTTLE_TIME = 2000
 
-export class DeclarativeSubject<Value> extends BehaviorSubject<Value> {
-  override set value(rawValue: Value) {
-    this.next(rawValue)
-  }
-  
-  override get value(): Value {
-    return this.getValue()
-  }
+interface EtfFilters {
+  page?: number | null
+  pageSize?: number | null
+  search?: string | null
+  priceMin?: number | null
+  priceMax?: number | null
+  currency?: string | null
 }
 
 @Component({
   standalone: true,
   imports: [
-    MatTableModule,
-    AsyncPipe,
     NgIf,
+    AsyncPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTableModule,
     MatProgressBarModule,
     MatInputModule,
     MatIconModule,
     MatCardModule,
     MatSelectModule,
     MatSortModule,
-    FormsModule,
-    JsonPipe,
     MatButtonModule,
+    JsonPipe,
   ],
   selector: 'list-with-filters',
   templateUrl: './list-with-filters.component.html',
@@ -63,66 +54,57 @@ export class DeclarativeSubject<Value> extends BehaviorSubject<Value> {
 export class ListWithFiltersComponent {
   private readonly etfs = inject(EtfService)
   
-  protected readonly loading$ = new DeclarativeSubject(false)
-  protected readonly error$ = new DeclarativeSubject(false)
-  protected readonly sort$ = new DeclarativeSubject<Sort | null>(null)
+  protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
   
-  protected readonly page$ = new DeclarativeSubject<number>(1)
-  protected readonly pageSize$ = new DeclarativeSubject<number>(25)
-  
-  protected readonly search$ = new DeclarativeSubject<string>('')
-  protected readonly priceMin$ = new DeclarativeSubject<number | null>(null)
-  protected readonly priceMax$ = new DeclarativeSubject<number | null>(null)
-  protected readonly currency$ = new DeclarativeSubject<string>('')
+  protected readonly loading = signal(false)
+  protected readonly error = signal(false)
+  protected readonly sort = signal<Sort | null>(null)
   
   protected readonly retry$ = new Subject<void>()
   
-  private readonly throttleFiltersTimeInMs = 2000;
+  protected readonly filters = new FormGroup({
+    page: new FormControl(0, { nonNullable: true }),
+    pageSize: new FormControl(0, { nonNullable: true }),
+    search: new FormControl('', { nonNullable: true }),
+    priceMin: new FormControl(0),
+    priceMax: new FormControl(0),
+    currency: new FormControl(null),
+  })
   
-  private readonly data$ = combineLatest({
-    page: this.page$,
-    pageSize: this.pageSize$,
-    search: this.search$,
-    priceMin: this.priceMin$,
-    priceMax: this.priceMax$,
-    currency: this.currency$,
-  }).pipe(
-    throttleTime(this.throttleFiltersTimeInMs, undefined, { leading: true, trailing: true }),
-    tap(() => {
-      this.loading$.value = true
-      this.error$.value = false
-    }),
-    switchMap(
-      ({ page, pageSize, ...filters }) =>
-        this.etfs.getEtfList(page, pageSize, filters).pipe(
-          tap(() => {
-            this.loading$.value = false
-          }),
-          retry({
-            delay: (error) => {
-              console.error(error)
-              this.error$.value = true
-              this.loading$.value = false
-              
-              return this.retry$.pipe(
-                tap(() => {
-                  this.error$.value = false
-                  this.loading$.value = true
-                }),
-              )
-            },
-          }),
-        ),
+  protected readonly loadedItems: Signal<Etf[]> = toSignal(
+    this.filters.valueChanges.pipe(
+      throttleTime(THROTTLE_TIME, undefined, { leading: true, trailing: true }),
+      tap(() => {
+        this.error.set(false)
+        this.loading.set(true)
+      }),
+      map((): EtfFilters => this.filters.value),
+      switchMap(
+        ({ page, pageSize, ...filters }) =>
+          this.etfs.getEtfList(page || 0, pageSize || 0, filters).pipe(
+            tap(() => {
+              this.loading.set(false)
+            }),
+            retry({
+              delay: (error) => {
+                console.error(error)
+                
+                this.error.set(true)
+                this.loading.set(false)
+                
+                return this.retry$.pipe(
+                  tap(() => {
+                    this.error.set(false)
+                    this.loading.set(true)
+                  }),
+                )
+              },
+            }),
+          ),
+      ),
     ),
+    { initialValue: [] },
   )
-  
-  protected readonly ctx$: Observable<Ctx> = combineLatest({
-    loading: this.loading$.asObservable(),
-    error: this.error$.asObservable(),
-    data: this.data$.pipe(startWith(null)),
-  }).pipe(debounceTime(0))
-  
-  protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
   
   protected element(el: unknown): Etf {
     return el as Etf
