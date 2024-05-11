@@ -13,8 +13,8 @@ import {
 }                                                                   from '@angular/material/progress-bar'
 import { MatSelectModule }                                          from '@angular/material/select'
 import { MatSortModule, Sort }                                      from '@angular/material/sort'
-import { MatTableModule }                                           from '@angular/material/table'
-import { map, retry, Subject, switchMap, tap, throttleTime }        from 'rxjs'
+import { MatTableModule }                                               from '@angular/material/table'
+import { map, retry, startWith, Subject, switchMap, tap, throttleTime } from 'rxjs'
 
 import { Etf, EtfService } from './etfs'
 
@@ -63,16 +63,17 @@ export class ListWithFiltersComponent {
   protected readonly retry$ = new Subject<void>()
   
   protected readonly filters = new FormGroup({
-    page: new FormControl(0, { nonNullable: true }),
-    pageSize: new FormControl(0, { nonNullable: true }),
+    page: new FormControl(1, { nonNullable: true }),
+    pageSize: new FormControl(20, { nonNullable: true }),
     search: new FormControl('', { nonNullable: true }),
-    priceMin: new FormControl(0),
-    priceMax: new FormControl(0),
-    currency: new FormControl(null),
+    priceMin: new FormControl(null as number | null),
+    priceMax: new FormControl(null as number | null),
+    currency: new FormControl(null as string | null),
   })
   
   protected readonly loadedItems: Signal<Etf[]> = toSignal(
     this.filters.valueChanges.pipe(
+      startWith(null),
       throttleTime(THROTTLE_TIME, undefined, { leading: true, trailing: true }),
       tap(() => {
         this.error.set(false)

@@ -27,7 +27,7 @@ export class EtfServiceImpl implements EtfService {
       map((all) => all.filter(el => this.filter(el, filters))),
       map((all) => {
         if (sort?.active) {
-          [ ...all ].sort((a, b) => {
+          return [ ...all ].sort((a, b) => {
             const av = a[sort.active as keyof Etf]
             const bv = b[sort.active as keyof Etf]
             
