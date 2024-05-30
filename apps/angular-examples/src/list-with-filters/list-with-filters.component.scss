@@ -3,10 +3,6 @@
   padding: 16px;
 }
 
-.filters {
-  margin-bottom: 32px;
-}
-
 .filters-content {
   gap: 8px;
   display: flex;
@@ -19,4 +15,8 @@ mat-form-field {
 
 .loading-hide {
   display: none;
+}
+
+.instruments-list, .loader {
+  margin: 20px 0;
 }

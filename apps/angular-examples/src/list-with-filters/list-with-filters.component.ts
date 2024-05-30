@@ -1,25 +1,65 @@
-import { AsyncPipe, JsonPipe, NgIf }                                from '@angular/common'
-import { Component, inject, Signal, signal }                        from '@angular/core'
+import { AsyncPipe, JsonPipe } from '@angular/common'
 import {
+  Component,
+  computed,
+  inject,
+  Signal,
+  signal,
+}                              from '@angular/core'
+import {
+  toObservable,
   toSignal,
-}                                                                   from '@angular/core/rxjs-interop'
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms'
-import { MatButtonModule }                                          from '@angular/material/button'
-import { MatCardModule }                                            from '@angular/material/card'
-import { MatIconModule }                                            from '@angular/material/icon'
-import { MatInputModule }                                           from '@angular/material/input'
+}                              from '@angular/core/rxjs-interop'
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+}                              from '@angular/forms'
+import {
+  MatButtonModule,
+}                              from '@angular/material/button'
+import {
+  MatCardModule,
+}                              from '@angular/material/card'
+import {
+  MatIconModule,
+}                              from '@angular/material/icon'
+import {
+  MatInputModule,
+}                              from '@angular/material/input'
+import {
+  MatPaginator,
+}                              from '@angular/material/paginator'
 import {
   MatProgressBarModule,
-}                                                                   from '@angular/material/progress-bar'
-import { MatSelectModule }                                          from '@angular/material/select'
-import { MatSortModule, Sort }                                      from '@angular/material/sort'
-import { MatTableModule }                                               from '@angular/material/table'
-import { map, retry, startWith, Subject, switchMap, tap, throttleTime } from 'rxjs'
+}                              from '@angular/material/progress-bar'
+import {
+  MatSelectModule,
+}                              from '@angular/material/select'
+import {
+  MatSortModule,
+  Sort,
+}                              from '@angular/material/sort'
+import {
+  MatTableModule,
+}                              from '@angular/material/table'
+import {
+  debounceTime,
+  map,
+  merge,
+  Observable,
+  retry,
+  startWith,
+  Subject,
+  switchMap,
+  tap,
+}                              from 'rxjs'
 
 import { Etf, EtfService } from './etfs'
 
 
-const THROTTLE_TIME = 2000
+const DEBOUNCE_TIME = 200
 
 interface EtfFilters {
   page?: number | null
@@ -33,7 +73,7 @@ interface EtfFilters {
 @Component({
   standalone: true,
   imports: [
-    NgIf,
+    JsonPipe,
     AsyncPipe,
     FormsModule,
     ReactiveFormsModule,
@@ -45,7 +85,7 @@ interface EtfFilters {
     MatSelectModule,
     MatSortModule,
     MatButtonModule,
-    JsonPipe,
+    MatPaginator,
   ],
   selector: 'list-with-filters',
   templateUrl: './list-with-filters.component.html',
@@ -55,26 +95,31 @@ export class ListWithFiltersComponent {
   private readonly etfs = inject(EtfService)
   
   protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
+  protected readonly pageSizes = [ 5, 10, 20, 50, 100 ]
   
   protected readonly loading = signal(false)
   protected readonly error = signal(false)
+  protected readonly page = signal(1)
+  protected readonly pageSize = signal(10)
+  protected readonly allItems = signal<number>(0)
+  protected readonly pages = computed(() => Math.ceil(this.allItems() / this.pageSize()))
   protected readonly sort = signal<Sort | null>(null)
   
   protected readonly retry$ = new Subject<void>()
   
   protected readonly filters = new FormGroup({
-    page: new FormControl(1, { nonNullable: true }),
-    pageSize: new FormControl(20, { nonNullable: true }),
     search: new FormControl('', { nonNullable: true }),
     priceMin: new FormControl(null as number | null),
     priceMax: new FormControl(null as number | null),
     currency: new FormControl(null as string | null),
   })
   
+  private readonly reloadValues$: Observable<unknown> = merge(this.filters.valueChanges, toObservable(this.page), toObservable(this.pageSize))
+  
   protected readonly loadedItems: Signal<Etf[]> = toSignal(
-    this.filters.valueChanges.pipe(
+    this.reloadValues$.pipe(
       startWith(null),
-      throttleTime(THROTTLE_TIME, undefined, { leading: true, trailing: true }),
+      debounceTime(DEBOUNCE_TIME),
       tap(() => {
         this.error.set(false)
         this.loading.set(true)

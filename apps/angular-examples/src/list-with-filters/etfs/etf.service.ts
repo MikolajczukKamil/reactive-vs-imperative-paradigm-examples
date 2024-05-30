@@ -20,7 +20,7 @@ export interface Filters {
 
 @Injectable({ providedIn: 'root' })
 export class EtfServiceImpl implements EtfService {
-  private readonly all$: Observable<Etf[]> = of(allEtfs.filter(e => e.currency !== '—'))
+  private readonly all$: Observable<Etf[]> = of(allEtfs.filter(e => e.currency !== '—' && e.price > 0))
   
   public getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort): Observable<Etf[]> {
     return this.all$.pipe(
@@ -46,7 +46,7 @@ export class EtfServiceImpl implements EtfService {
         return all
       }),
       map((all) => all.slice((page - 1) * pageSize, page * pageSize)),
-      delay(3000 * Math.random()),
+      delay(2000 * Math.random() + 200),
     )
   }
   
