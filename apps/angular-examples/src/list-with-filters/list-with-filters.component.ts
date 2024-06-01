@@ -4,8 +4,9 @@ import {
   Component,
   computed,
   inject,
-  Signal,
+  Injectable,
   signal,
+  Signal,
 }                              from '@angular/core'
 import {
   toObservable,
@@ -31,6 +32,7 @@ import {
 }                              from '@angular/material/input'
 import {
   MatPaginator,
+  MatPaginatorIntl,
   PageEvent,
 }                              from '@angular/material/paginator'
 import {
@@ -47,7 +49,8 @@ import {
   MatTableModule,
 }                              from '@angular/material/table'
 import {
-  debounceTime, map,
+  debounceTime,
+  map,
   merge,
   Observable,
   of,
@@ -56,10 +59,31 @@ import {
   Subject,
   switchMap,
   tap,
-} from 'rxjs'
+}                              from 'rxjs'
 
 import { Etf, EtfService } from './etfs'
 
+
+@Injectable()
+class CustomMatPaginatorIntl extends MatPaginatorIntl {
+  override itemsPerPageLabel = 'Elementów na stronę'
+  override nextPageLabel = 'Następna strona'
+  override previousPageLabel = 'Poprzednia strona'
+  override firstPageLabel = 'Pierwsza strona'
+  override lastPageLabel = 'Ostatnia strona'
+  
+  override getRangeLabel = (page: number, pageSize: number, length: number) => {
+    if (length === 0 || pageSize === 0) {
+      return `0 z ${ length }`
+    }
+    const startIndex = page * pageSize
+    // If the start index exceeds the list length, do not try and fix the end index to the end.
+    const endIndex = startIndex < length ?
+      Math.min(startIndex + pageSize, length) :
+      startIndex + pageSize
+    return `${ startIndex + 1 } - ${ endIndex } z ${ length }`
+  }
+}
 
 const DEBOUNCE_TIME = 200
 
@@ -92,6 +116,7 @@ interface EtfFilters {
   selector: 'list-with-filters',
   templateUrl: './list-with-filters.component.html',
   styleUrls: [ './list-with-filters.component.scss' ],
+  providers: [ { provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl } ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListWithFiltersComponent {
@@ -160,11 +185,6 @@ export class ListWithFiltersComponent {
   
   protected element(el: unknown): Etf {
     return el as Etf
-  }
-  
-  protected log(e: any) {
-    // this.pageSize.set(e)
-    console.log({ e })
   }
   
   protected handlePageEvent(e: PageEvent) {

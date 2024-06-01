@@ -1,7 +1,5 @@
-<!--<p>{{ filters.value | json }}</p>-->
-
-<form [formGroup]="filters">
-  <mat-card class="filters">
+<mat-card class="filters">
+  <form [formGroup]="filters">
     <mat-card-content class="filters-content">
 
       <mat-form-field appearance="outline">
@@ -42,8 +40,8 @@
       </mat-form-field>
 
     </mat-card-content>
-  </mat-card>
-</form>
+  </form>
+</mat-card>
 
 <table
   mat-table
@@ -106,6 +104,6 @@
   (page)="handlePageEvent($event)"
   [length]="pages()"
   [pageSize]="pageSize()"
-  (pageSizeChange)="log($event)"
   [pageSizeOptions]="pageSizes"
+  [showFirstLastButtons]="true"
 ></mat-paginator>
