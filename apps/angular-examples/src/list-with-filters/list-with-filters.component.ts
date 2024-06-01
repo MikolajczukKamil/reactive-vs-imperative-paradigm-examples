@@ -1,5 +1,6 @@
 import { AsyncPipe, JsonPipe } from '@angular/common'
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -30,6 +31,7 @@ import {
 }                              from '@angular/material/input'
 import {
   MatPaginator,
+  PageEvent,
 }                              from '@angular/material/paginator'
 import {
   MatProgressBarModule,
@@ -45,16 +47,16 @@ import {
   MatTableModule,
 }                              from '@angular/material/table'
 import {
-  debounceTime,
-  map,
+  debounceTime, map,
   merge,
   Observable,
+  of,
   retry,
   startWith,
   Subject,
   switchMap,
   tap,
-}                              from 'rxjs'
+} from 'rxjs'
 
 import { Etf, EtfService } from './etfs'
 
@@ -90,9 +92,10 @@ interface EtfFilters {
   selector: 'list-with-filters',
   templateUrl: './list-with-filters.component.html',
   styleUrls: [ './list-with-filters.component.scss' ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListWithFiltersComponent {
-  private readonly etfs = inject(EtfService)
+  private readonly etfService = inject(EtfService)
   
   protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
   protected readonly pageSizes = [ 5, 10, 20, 50, 100 ]
@@ -108,51 +111,64 @@ export class ListWithFiltersComponent {
   protected readonly retry$ = new Subject<void>()
   
   protected readonly filters = new FormGroup({
-    search: new FormControl('', { nonNullable: true }),
-    priceMin: new FormControl(null as number | null),
-    priceMax: new FormControl(null as number | null),
-    currency: new FormControl(null as string | null),
+    search: new FormControl<string>('', { nonNullable: true }),
+    priceMin: new FormControl<number | null>(null),
+    priceMax: new FormControl<number | null>(null),
+    currency: new FormControl<string | null>(null),
   })
   
-  private readonly reloadValues$: Observable<unknown> = merge(this.filters.valueChanges, toObservable(this.page), toObservable(this.pageSize))
+  private readonly reloadValues$: Observable<unknown> = merge(
+    this.filters.valueChanges,
+    toObservable(this.page),
+    toObservable(this.pageSize),
+    toObservable(this.sort),
+  )
   
   protected readonly loadedItems: Signal<Etf[]> = toSignal(
     this.reloadValues$.pipe(
       startWith(null),
       debounceTime(DEBOUNCE_TIME),
-      tap(() => {
-        this.error.set(false)
-        this.loading.set(true)
-      }),
-      map((): EtfFilters => this.filters.value),
-      switchMap(
-        ({ page, pageSize, ...filters }) =>
-          this.etfs.getEtfList(page || 0, pageSize || 0, filters).pipe(
-            tap(() => {
-              this.loading.set(false)
-            }),
-            retry({
-              delay: (error) => {
-                console.error(error)
-                
-                this.error.set(true)
-                this.loading.set(false)
-                
-                return this.retry$.pipe(
-                  tap(() => {
-                    this.error.set(false)
-                    this.loading.set(true)
-                  }),
-                )
-              },
-            }),
-          ),
-      ),
+      switchMap(() => this.loadInstruments()),
     ),
     { initialValue: [] },
   )
   
+  private loadInstruments(): Observable<Etf[]> {
+    return of(null).pipe(
+      tap(() => {
+        this.loading.set(true)
+      }),
+      switchMap(() => this.etfService.getEtfList(this.page(), this.pageSize(), this.filters.value, this.sort())),
+      map((response) => {
+        this.allItems.set(response.itemsCount)
+        
+        this.loading.set(false)
+        this.error.set(false)
+        
+        return response.items
+      }),
+      retry({
+        delay: (error) => {
+          console.error(error)
+          this.error.set(true)
+          
+          return this.retry$
+        },
+      }),
+    )
+  }
+  
   protected element(el: unknown): Etf {
     return el as Etf
+  }
+  
+  protected log(e: any) {
+    // this.pageSize.set(e)
+    console.log({ e })
+  }
+  
+  protected handlePageEvent(e: PageEvent) {
+    this.pageSize.set(e.pageSize)
+    this.page.set(e.pageIndex + 1)
   }
 }

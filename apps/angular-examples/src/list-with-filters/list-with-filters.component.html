@@ -90,16 +90,22 @@
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
 
-<mat-progress-bar class="loader" [class.loading-hide]="!loading()" mode="indeterminate"></mat-progress-bar>
+<mat-progress-bar
+  class="loader"
+  [class.loading-hide]="!loading()"
+  mode="indeterminate"
+></mat-progress-bar>
 
 @if (error()) {
 <p>Wystąpił niespodziwany błąd</p>
 
-<button mat-button (click)="retry$.next()">Sprbuj ponownie</button>
+<button mat-button (click)="retry$.next()">Spróbuj ponownie</button>
 }
 
 <mat-paginator
+  (page)="handlePageEvent($event)"
   [length]="pages()"
   [pageSize]="pageSize()"
+  (pageSizeChange)="log($event)"
   [pageSizeOptions]="pageSizes"
 ></mat-paginator>

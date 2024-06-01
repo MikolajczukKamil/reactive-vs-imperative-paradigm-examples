@@ -6,23 +6,28 @@ import allEtfs from './etfs.json'
 
 
 export interface Etf {
-  name: string
-  currency: string
-  price: number
+  readonly name: string
+  readonly currency: string
+  readonly price: number
+}
+
+export interface EtfPage {
+  readonly items: Etf[];
+  readonly itemsCount: number;
 }
 
 export interface Filters {
-  search?: string | null
-  currency?: string | null
-  minPrice?: number | null
-  maxPrice?: number | null
+  readonly search?: string | null
+  readonly currency?: string | null
+  readonly minPrice?: number | null
+  readonly maxPrice?: number | null
 }
 
 @Injectable({ providedIn: 'root' })
 export class EtfServiceImpl implements EtfService {
   private readonly all$: Observable<Etf[]> = of(allEtfs.filter(e => e.currency !== '—' && e.price > 0))
   
-  public getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort): Observable<Etf[]> {
+  public getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort | null): Observable<EtfPage> {
     return this.all$.pipe(
       map((all) => all.filter(el => this.filter(el, filters))),
       map((all) => {
@@ -45,7 +50,10 @@ export class EtfServiceImpl implements EtfService {
         
         return all
       }),
-      map((all) => all.slice((page - 1) * pageSize, page * pageSize)),
+      map((all): EtfPage => ({
+        itemsCount: all.length,
+        items: all.slice((page - 1) * pageSize, page * pageSize),
+      })),
       delay(2000 * Math.random() + 200),
     )
   }
@@ -73,5 +81,5 @@ export class EtfServiceImpl implements EtfService {
 
 @Injectable()
 export abstract class EtfService {
-  public abstract getEtfList(page: number, pageSize: number, filters?: Filters, sort?: Sort): Observable<Etf[]>;
+  public abstract getEtfList(page: number, pageSize: number, filters?: Filters, sort?: Sort | null): Observable<EtfPage>;
 }
