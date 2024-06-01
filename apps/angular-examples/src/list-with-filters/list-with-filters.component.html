@@ -102,6 +102,7 @@
 
 <mat-paginator
   (page)="handlePageEvent($event)"
+  [pageIndex]="page() - 1"
   [length]="pages()"
   [pageSize]="pageSize()"
   [pageSizeOptions]="pageSizes"

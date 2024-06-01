@@ -143,7 +143,12 @@ export class ListWithFiltersComponent {
   })
   
   private readonly reloadValues$: Observable<unknown> = merge(
-    this.filters.valueChanges,
+    this.filters.valueChanges.pipe(tap(() => {
+      if (this.page() !== 1) {
+        console.log("Update", this.page())
+        this.page.set(1);
+      }
+    })),
     toObservable(this.page),
     toObservable(this.pageSize),
     toObservable(this.sort),
@@ -188,6 +193,8 @@ export class ListWithFiltersComponent {
   }
   
   protected handlePageEvent(e: PageEvent) {
+    console.log("handlePageEvent", e)
+    
     this.pageSize.set(e.pageSize)
     this.page.set(e.pageIndex + 1)
   }
