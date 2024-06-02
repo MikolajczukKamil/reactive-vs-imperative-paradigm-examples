@@ -6,8 +6,8 @@ import {
   inject,
   Injectable,
   signal,
-  Signal,
-}                              from '@angular/core'
+  Signal, ViewChild,
+} from '@angular/core'
 import {
   toObservable,
   toSignal,
@@ -42,9 +42,10 @@ import {
   MatSelectModule,
 }                              from '@angular/material/select'
 import {
+  MatSort,
   MatSortModule,
   Sort,
-}                              from '@angular/material/sort'
+} from '@angular/material/sort'
 import {
   MatTableModule,
 }                              from '@angular/material/table'
@@ -87,13 +88,9 @@ class CustomMatPaginatorIntl extends MatPaginatorIntl {
 
 const DEBOUNCE_TIME = 200
 
-interface EtfFilters {
-  page?: number | null
-  pageSize?: number | null
-  search?: string | null
-  priceMin?: number | null
-  priceMax?: number | null
-  currency?: string | null
+interface Currency {
+  code: string
+  name: string
 }
 
 @Component({
@@ -122,7 +119,17 @@ interface EtfFilters {
 export class ListWithFiltersComponent {
   private readonly etfService = inject(EtfService)
   
+  @ViewChild(MatSort, { static: true })
+  private readonly matSort!: MatSort;
+  
   protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
+  protected readonly currencies: Currency[] = [
+    { code:'USD', name: 'Dolar'},
+    { code:'EUR', name: 'Euro'},
+    { code:'GBP', name: 'Funt'},
+    { code:'CHF', name: 'Frank'},
+    { code:'PLN', name: 'Złoty'},
+  ]
   protected readonly pageSizes = [ 5, 10, 20, 50, 100 ]
   
   protected readonly loading = signal(false)
@@ -188,13 +195,16 @@ export class ListWithFiltersComponent {
     )
   }
   
+  protected resetFilters(): void {
+    this.filters.reset();
+    this.matSort.sort({ id: '', start: 'asc', disableClear: false });
+  }
+  
   protected element(el: unknown): Etf {
     return el as Etf
   }
   
   protected handlePageEvent(e: PageEvent) {
-    console.log("handlePageEvent", e)
-    
     this.pageSize.set(e.pageSize)
     this.page.set(e.pageIndex + 1)
   }

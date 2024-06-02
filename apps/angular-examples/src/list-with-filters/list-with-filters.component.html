@@ -31,14 +31,13 @@
       <mat-form-field appearance="outline">
         <mat-label>Waluta</mat-label>
         <mat-select formControlName="currency">
-          <mat-option value="USD">Dolar</mat-option>
-          <mat-option value="EUR">Euro</mat-option>
-          <mat-option value="GBP">Funt</mat-option>
-          <mat-option value="CHF">Frank</mat-option>
-          <mat-option value="PLN">Złoty</mat-option>
+          @for(currency of currencies; track currency.code) {
+          <mat-option [value]="currency.code">{{ currency.name }}</mat-option>
+          }
         </mat-select>
       </mat-form-field>
 
+      <button mat-button (click)="resetFilters()" class="reset-btn">Wyczyść i przeładuj</button>
     </mat-card-content>
   </form>
 </mat-card>
@@ -96,7 +95,6 @@
 
 @if (error()) {
 <p>Wystąpił niespodziwany błąd</p>
-
 <button mat-button (click)="retry$.next()">Spróbuj ponownie</button>
 }
 
