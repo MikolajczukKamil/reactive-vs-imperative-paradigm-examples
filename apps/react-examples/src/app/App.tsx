@@ -26,8 +26,8 @@ export function App() {
       
       <Container maxWidth="xl">
         <Box sx={ { p: 3 } }>
-          { path === RoutesMap.ListWithFilters && <SomePage /> }
-          { path === RoutesMap.SomePage && <ListWithFilters /> }
+          { path === RoutesMap.ListWithFilters && <ListWithFilters /> }
+          { path === RoutesMap.SomePage && <SomePage /> }
         </Box>
       </Container>
     </>
