@@ -6,8 +6,9 @@ import {
   inject,
   Injectable,
   signal,
-  Signal, ViewChild,
-} from '@angular/core'
+  Signal,
+  ViewChild,
+}                              from '@angular/core'
 import {
   toObservable,
   toSignal,
@@ -45,7 +46,7 @@ import {
   MatSort,
   MatSortModule,
   Sort,
-} from '@angular/material/sort'
+}                              from '@angular/material/sort'
 import {
   MatTableModule,
 }                              from '@angular/material/table'
@@ -120,15 +121,15 @@ export class ListWithFiltersComponent {
   private readonly etfService = inject(EtfService)
   
   @ViewChild(MatSort, { static: true })
-  private readonly matSort!: MatSort;
+  private readonly matSort!: MatSort
   
   protected readonly displayedColumns = [ 'name', 'price', 'currency' ]
   protected readonly currencies: Currency[] = [
-    { code:'USD', name: 'Dolar'},
-    { code:'EUR', name: 'Euro'},
-    { code:'GBP', name: 'Funt'},
-    { code:'CHF', name: 'Frank'},
-    { code:'PLN', name: 'Złoty'},
+    { code: 'USD', name: 'Dolar' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'GBP', name: 'Funt' },
+    { code: 'CHF', name: 'Frank' },
+    { code: 'PLN', name: 'Złoty' },
   ]
   protected readonly pageSizes = [ 5, 10, 20, 50, 100 ]
   
@@ -152,8 +153,8 @@ export class ListWithFiltersComponent {
   private readonly reloadValues$: Observable<unknown> = merge(
     this.filters.valueChanges.pipe(tap(() => {
       if (this.page() !== 1) {
-        console.log("Update", this.page())
-        this.page.set(1);
+        console.log('Update', this.page())
+        this.page.set(1)
       }
     })),
     toObservable(this.page),
@@ -196,8 +197,8 @@ export class ListWithFiltersComponent {
   }
   
   protected resetFilters(): void {
-    this.filters.reset();
-    this.matSort.sort({ id: '', start: 'asc', disableClear: false });
+    this.filters.reset()
+    this.matSort.sort({ id: '', start: 'asc', disableClear: false })
   }
   
   protected element(el: unknown): Etf {
