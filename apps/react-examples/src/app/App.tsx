@@ -1,5 +1,8 @@
-import { Box, Container, Tab, Tabs } from '@mui/material'
-import { useState }                  from 'react'
+import { Box, Container, createTheme, Tab, Tabs, ThemeProvider, useTheme } from '@mui/material'
+import {
+  plPL,
+}                                                                          from '@mui/material/locale'
+import { useMemo, useState }                                               from 'react'
 
 import { ListWithFilters } from '../list-with-filters'
 import { SomePage }        from '../some-page'
@@ -17,8 +20,14 @@ export function App() {
     setPath(newPage)
   }
   
+  const theme = useTheme()
+  const themeWithLocale = useMemo(
+    () => createTheme(theme, plPL),
+    [ theme ],
+  )
+  
   return (
-    <>
+    <ThemeProvider theme={ themeWithLocale }>
       <Tabs value={ path } onChange={ goTo } centered>
         <Tab label="Lista z filtrami" value={ RoutesMap.ListWithFilters } />
         <Tab label="Inny przykład" value={ RoutesMap.SomePage } />
@@ -30,6 +39,6 @@ export function App() {
           { path === RoutesMap.SomePage && <SomePage /> }
         </Box>
       </Container>
-    </>
+    </ThemeProvider>
   )
 }

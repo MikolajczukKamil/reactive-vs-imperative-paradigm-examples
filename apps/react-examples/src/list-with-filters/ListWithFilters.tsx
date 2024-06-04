@@ -16,10 +16,10 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
-}                            from '@mui/material'
-import { SelectChangeEvent } from '@mui/material/Select/SelectInput'
-import { SortDirection }                     from '@mui/material/TableCell/TableCell'
-import { useState, MouseEvent, ChangeEvent } from 'react'
+}                                from '@mui/material'
+import { SelectChangeEvent }     from '@mui/material/Select/SelectInput'
+import { SortDirection }         from '@mui/material/TableCell/TableCell'
+import { ChangeEvent, useState } from 'react'
 
 
 interface Currency {
@@ -50,6 +50,7 @@ export function ListWithFilters() {
   
   function handleClear(): void {
     setCurrency(null)
+    setSort({ active: '', direction: false })
   }
   
   const [ sort, setSort ] = useState<Sort>({ active: '', direction: false })
@@ -70,7 +71,6 @@ export function ListWithFilters() {
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0
-
   
   const headCells = [
     {
@@ -85,19 +85,19 @@ export function ListWithFilters() {
     },
   ]
   
-  const createSortHandler =
-    (active: string) => (event: MouseEvent<unknown>) => {
-      console.log(event);
+  function toggleSort(active: string) {
+    const isAsc = sort.active === active && sort.direction === 'asc'
     
-      // setSort({
-      //   active, direction: event.target.value
-      // })
-    }
+    setSort({
+      active,
+      direction: isAsc ? 'desc' : 'asc',
+    })
+  }
   
   return (
     <Box sx={ { maxWidth: 1000, margin: 'auto' } }>
       <form>
-        <Card sx={ { p: 2, display: 'flex', gap: 1, alignItems: 'center' } }>
+        <Card sx={ { p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center' } }>
           <TextField label="Szukaj" variant="outlined" />
           
           <TextField label="Cena minimalna" variant="outlined" type="number" />
@@ -135,16 +135,9 @@ export function ListWithFilters() {
                     <TableSortLabel
                       active={ sort.active === headCell.name }
                       direction={ sort.active === headCell.name && sort.direction === 'desc' ? 'desc' : 'asc' }
-                      onClick={ createSortHandler(headCell.name) }
+                      onClick={ () => toggleSort(headCell.name) }
                     >
                       { headCell.label }
-                      {/*{ orderBy === headCell.id ? (*/}
-                      {/*  <Box component="span" sx={ visuallyHidden }>*/}
-                      {/*    { order === 'desc'*/}
-                      {/*      ? 'sorted descending'*/}
-                      {/*      : 'sorted ascending' }*/}
-                      {/*  </Box>*/}
-                      {/*) : null }*/}
                     </TableSortLabel>
                   </TableCell>
                 )) }
@@ -174,9 +167,9 @@ export function ListWithFilters() {
         
         <TablePagination
           rowsPerPageOptions={ [ 5, 10, 25 ] }
-          count={ rows.length }
+          count={ rows.length + 10 }
           rowsPerPage={ rowsPerPage }
-          page={ page }
+          page={ page + 2 }
           onPageChange={ handleChangePage }
           onRowsPerPageChange={ handleChangeRowsPerPage }
         />
