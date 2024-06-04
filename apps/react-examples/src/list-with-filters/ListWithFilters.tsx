@@ -16,10 +16,11 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
-}                                from '@mui/material'
-import { SelectChangeEvent }     from '@mui/material/Select/SelectInput'
-import { SortDirection }         from '@mui/material/TableCell/TableCell'
-import { ChangeEvent, useState } from 'react'
+}               from '@mui/material'
+import { SelectChangeEvent }                from '@mui/material/Select/SelectInput'
+import { ChangeEvent, useEffect, useState } from 'react'
+
+import { useEtfsService, Sort, Etf } from './etfs'
 
 
 interface Currency {
@@ -27,13 +28,10 @@ interface Currency {
   name: string
 }
 
-interface Sort {
-  active: string;
-  direction: SortDirection;
-}
-
 
 export function ListWithFilters() {
+  const etfService = useEtfsService()
+  
   const [ currency, setCurrency ] = useState<string | null>(null)
   
   const currencies: Currency[] = [
@@ -66,7 +64,11 @@ export function ListWithFilters() {
     setPage(0)
   }
   
-  const rows: any[] = []
+  const [rows, setRows] = useState<Etf[]>([])
+  
+  useEffect(() => {
+    etfService.getEtfList(1, 10).then(page => setRows(page.items))
+  }, [])
   
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
@@ -113,7 +115,10 @@ export function ListWithFilters() {
               sx={ { minWidth: 120 } }
             >
               { currencies.map(currency => (
-                <MenuItem value={ currency.code }>{ currency.name }</MenuItem>),
+                <MenuItem
+                  key={ currency.code }
+                  value={ currency.code }
+                >{ currency.name }</MenuItem>),
               ) }
             </Select>
           </FormControl>
@@ -169,7 +174,7 @@ export function ListWithFilters() {
           rowsPerPageOptions={ [ 5, 10, 25 ] }
           count={ rows.length + 10 }
           rowsPerPage={ rowsPerPage }
-          page={ page + 2 }
+          page={ page }
           onPageChange={ handleChangePage }
           onRowsPerPageChange={ handleChangeRowsPerPage }
         />
