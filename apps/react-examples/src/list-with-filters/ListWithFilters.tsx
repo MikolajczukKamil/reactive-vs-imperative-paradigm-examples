@@ -1,8 +1,10 @@
+import SearchIcon                           from '@mui/icons-material/Search'
 import {
   Box,
   Button,
   Card,
   FormControl,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Paper,
@@ -16,11 +18,11 @@ import {
   TableRow,
   TableSortLabel,
   TextField,
-}               from '@mui/material'
+}                                           from '@mui/material'
 import { SelectChangeEvent }                from '@mui/material/Select/SelectInput'
 import { ChangeEvent, useEffect, useState } from 'react'
 
-import { useEtfsService, Sort, Etf } from './etfs'
+import { Etf, Sort, useEtfsService } from './etfs'
 
 
 interface Currency {
@@ -64,7 +66,7 @@ export function ListWithFilters() {
     setPage(0)
   }
   
-  const [rows, setRows] = useState<Etf[]>([])
+  const [ rows, setRows ] = useState<Etf[]>([])
   
   useEffect(() => {
     etfService.getEtfList(1, 10).then(page => setRows(page.items))
@@ -99,8 +101,16 @@ export function ListWithFilters() {
   return (
     <Box sx={ { maxWidth: 1000, margin: 'auto' } }>
       <form>
-        <Card sx={ { p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center' } }>
-          <TextField label="Szukaj" variant="outlined" />
+        <Card sx={ { p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center', '& > *': { flex: 1 } } }>
+          <TextField
+            label="Szukaj" variant="outlined" InputProps={ {
+            endAdornment: (
+              <InputAdornment position="end">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          } }
+          />
           
           <TextField label="Cena minimalna" variant="outlined" type="number" />
           <TextField label="Cena maksymalna" variant="outlined" type="number" />
@@ -151,14 +161,10 @@ export function ListWithFilters() {
             
             <TableBody>
               { rows.map((row, index) => (
-                <TableRow hover role="checkbox" key={ row.id }>
-                  <TableCell component="th" scope="row" padding="none">
-                    { row.name }
-                  </TableCell>
-                  <TableCell align="right">{ row.calories }</TableCell>
-                  <TableCell align="right">{ row.fat }</TableCell>
-                  <TableCell align="right">{ row.carbs }</TableCell>
-                  <TableCell align="right">{ row.protein }</TableCell>
+                <TableRow hover role="checkbox" key={ row.name }>
+                  <TableCell>{ row.name }</TableCell>
+                  <TableCell>{ row.price }</TableCell>
+                  <TableCell>{ row.currency }</TableCell>
                 </TableRow>
               )) }
               { emptyRows > 0 && (

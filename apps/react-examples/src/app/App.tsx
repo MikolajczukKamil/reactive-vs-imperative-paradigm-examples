@@ -28,9 +28,14 @@ export function App() {
   
   return (
     <ThemeProvider theme={ themeWithLocale }>
-      <Tabs value={ path } onChange={ goTo } centered>
-        <Tab label="Lista z filtrami" value={ RoutesMap.ListWithFilters } />
-        <Tab label="Inny przykład" value={ RoutesMap.SomePage } />
+      <Tabs
+        value={ path }
+        onChange={ goTo }
+        centered
+        sx={ { maxWidth: 1000, width: '100%', margin: 'auto' } }
+      >
+        <Tab sx={ { flex: 1, maxWidth: 1000 } } label="Lista z filtrami" value={ RoutesMap.ListWithFilters } />
+        <Tab sx={ { flex: 1, maxWidth: 1000 } } label="Inny przykład" value={ RoutesMap.SomePage } />
       </Tabs>
       
       <Container maxWidth="xl">
