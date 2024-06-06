@@ -30,19 +30,40 @@ interface Currency {
   name: string
 }
 
+const pageSizes = [ 5, 10, 20, 50, 100 ]
+
+const currencies: Currency[] = [
+  { code: 'USD', name: 'Dolar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'Funt' },
+  { code: 'CHF', name: 'Frank' },
+  { code: 'PLN', name: 'Złoty' },
+]
+
+const headCells = [
+  {
+    name: 'name',
+    label: 'Nazwa',
+  }, {
+    name: 'price',
+    label: 'Cena',
+  }, {
+    name: 'currency',
+    label: 'Waluta',
+  },
+]
 
 export function ListWithFilters() {
-  const etfService = useEtfsService()
-  
+  const [ rows, setRows ] = useState<Etf[]>([])
+  const [ search, setSearch ] = useState('')
+  const [ minPrice, setMinPrice ] = useState('')
+  const [ maxPrice, setMaxPrice ] = useState('')
   const [ currency, setCurrency ] = useState<string | null>(null)
+  const [ sort, setSort ] = useState<Sort>({ active: '', direction: false })
+  const [ page, setPage ] = useState(0)
+  const [ pageSize, setPageSize ] = useState(pageSizes[0])
   
-  const currencies: Currency[] = [
-    { code: 'USD', name: 'Dolar' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'Funt' },
-    { code: 'CHF', name: 'Frank' },
-    { code: 'PLN', name: 'Złoty' },
-  ]
+  const etfService = useEtfsService()
   
   function handleCurrencyChange(e: SelectChangeEvent<string>): void {
     setCurrency(e.target?.value || null)
@@ -53,41 +74,31 @@ export function ListWithFilters() {
     setSort({ active: '', direction: false })
   }
   
-  const [ sort, setSort ] = useState<Sort>({ active: '', direction: false })
-  const [ page, setPage ] = useState(0)
-  const [ rowsPerPage, setRowsPerPage ] = useState(5)
-  
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage)
   }
   
   const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
+    setPageSize(parseInt(event.target.value, 10))
     setPage(0)
   }
   
-  const [ rows, setRows ] = useState<Etf[]>([])
-  
   useEffect(() => {
-    etfService.getEtfList(1, 10).then(page => setRows(page.items))
-  }, [])
+    let isActive = true
+    
+    etfService
+      .getEtfList(page, pageSize)
+      .then(page => {
+        if (isActive) {
+          setRows(page.items)
+        }
+      })
+    
+    return () => { isActive = false }
+  }, [ page, pageSize ])
   
   // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0
-  
-  const headCells = [
-    {
-      name: 'name',
-      label: 'Nazwa',
-    }, {
-      name: 'price',
-      label: 'Cena',
-    }, {
-      name: 'currency',
-      label: 'Waluta',
-    },
-  ]
+  const emptyRows = pageSize - rows.length
   
   function toggleSort(active: string) {
     const isAsc = sort.active === active && sort.direction === 'asc'
@@ -101,7 +112,16 @@ export function ListWithFilters() {
   return (
     <Box sx={ { maxWidth: 1000, margin: 'auto' } }>
       <form>
-        <Card sx={ { p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center', '& > *': { flex: 1 } } }>
+        <Card
+          sx={ {
+            p: 2,
+            mb: 2,
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            '& > *': { flex: 1 },
+          } }
+        >
           <TextField
             label="Szukaj" variant="outlined" InputProps={ {
             endAdornment: (
@@ -160,7 +180,7 @@ export function ListWithFilters() {
             </TableHead>
             
             <TableBody>
-              { rows.map((row, index) => (
+              { rows.map((row) => (
                 <TableRow hover role="checkbox" key={ row.name }>
                   <TableCell>{ row.name }</TableCell>
                   <TableCell>{ row.price }</TableCell>
@@ -169,7 +189,7 @@ export function ListWithFilters() {
               )) }
               { emptyRows > 0 && (
                 <TableRow style={ { height: 53 * emptyRows } }>
-                  <TableCell colSpan={ 5 } />
+                  <TableCell colSpan={ 3 } />
                 </TableRow>
               ) }
             </TableBody>
@@ -177,9 +197,11 @@ export function ListWithFilters() {
         </TableContainer>
         
         <TablePagination
-          rowsPerPageOptions={ [ 5, 10, 25 ] }
+          className="paginator"
+          component="div"
+          rowsPerPageOptions={ pageSizes }
           count={ rows.length + 10 }
-          rowsPerPage={ rowsPerPage }
+          rowsPerPage={ pageSize }
           page={ page }
           onPageChange={ handleChangePage }
           onRowsPerPageChange={ handleChangeRowsPerPage }
