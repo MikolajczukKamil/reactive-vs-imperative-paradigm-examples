@@ -88,16 +88,29 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
+  @if (error()) {
+    <div class="error">
+      @if (!loadedItems().length) {
+        <svg
+          class="icon"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          data-testid="ErrorIcon"
+          title="Error"
+        >
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"></path>
+        </svg>
+      }
+      <p>Wystąpił niespodziwany błąd</p>
+      <button mat-button (click)="retry$.next()">Spróbuj ponownie</button>
+    </div>
+  }
+
   <mat-progress-bar
     class="loader"
     [class.loading-hide]="!loading()"
     mode="indeterminate"
   ></mat-progress-bar>
-
-  @if (error()) {
-    <p>Wystąpił niespodziwany błąd</p>
-    <button mat-button (click)="retry$.next()">Spróbuj ponownie</button>
-  }
 
   <mat-paginator
     (page)="handlePageEvent($event)"

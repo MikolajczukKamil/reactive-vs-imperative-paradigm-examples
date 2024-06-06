@@ -34,7 +34,7 @@ function wait(ms: number): Promise<void> {
 
 class EtfServiceImpl implements EtfService {
   public async getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort | null): Promise<EtfPage> {
-    let list: Etf[] = allEtfs
+    let list: Etf[] = allEtfs.filter(e => e.currency !== '—' && e.price > 0)
     
     list = list.filter((el) => this.filter(el, filters))
     
@@ -56,6 +56,10 @@ class EtfServiceImpl implements EtfService {
     }
     
     await wait(2000 * Math.random() + 200)
+    
+    if (Math.random() < 0.2) {
+      throw new Error(`Dziwny błąd`)
+    }
     
     return {
       itemsCount: list.length,

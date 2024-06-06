@@ -188,6 +188,7 @@ export class ListWithFiltersComponent {
       retry({
         delay: (error) => {
           console.error(error)
+          this.loading.set(false)
           this.error.set(true)
           
           return this.retry$

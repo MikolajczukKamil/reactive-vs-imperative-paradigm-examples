@@ -6,6 +6,7 @@ import {
   FormControl,
   InputAdornment,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Paper,
   Select,
@@ -58,44 +59,67 @@ export function ListWithFilters() {
   const [ search, setSearch ] = useState('')
   const [ minPrice, setMinPrice ] = useState('')
   const [ maxPrice, setMaxPrice ] = useState('')
-  const [ currency, setCurrency ] = useState<string | null>(null)
+  const [ currency, setCurrency ] = useState('')
   const [ sort, setSort ] = useState<Sort>({ active: '', direction: false })
   const [ page, setPage ] = useState(0)
   const [ pageSize, setPageSize ] = useState(pageSizes[0])
+  const [ loading, setLoading ] = useState(false)
   
   const etfService = useEtfsService()
   
   function handleCurrencyChange(e: SelectChangeEvent<string>): void {
-    setCurrency(e.target?.value || null)
+    setCurrency(e.target?.value ?? '')
   }
   
-  function handleClear(): void {
-    setCurrency(null)
-    setSort({ active: '', direction: false })
-  }
-  
-  const handleChangePage = (_: unknown, newPage: number) => {
+  function handleChangePage(_: unknown, newPage: number) {
     setPage(newPage)
   }
   
-  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
+  function handleChangeRowsPerPage(event: ChangeEvent<HTMLInputElement>) {
     setPageSize(parseInt(event.target.value, 10))
     setPage(0)
+  }
+  
+  function handleClear(): void {
+    setSearch('')
+    setMinPrice('')
+    setMaxPrice('')
+    setCurrency('')
+    if (sort.active !== '' || sort.direction !== false) {
+      setSort({ active: '', direction: false })
+    }
   }
   
   useEffect(() => {
     let isActive = true
     
+    setLoading(true)
+    
     etfService
-      .getEtfList(page, pageSize)
+      .getEtfList(
+        page + 1,
+        pageSize,
+        {
+          search: search || null,
+          minPrice: parseFloat(minPrice) || null,
+          maxPrice: parseFloat(maxPrice) || null,
+          currency: currency || null,
+        },
+        sort,
+      )
       .then(page => {
         if (isActive) {
           setRows(page.items)
         }
+        
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(false)
       })
     
     return () => { isActive = false }
-  }, [ page, pageSize ])
+  }, [ page, pageSize, search, minPrice, maxPrice, currency, sort ])
   
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = pageSize - rows.length
@@ -196,9 +220,12 @@ export function ListWithFilters() {
           </Table>
         </TableContainer>
         
+        { loading && <LinearProgress /> }
+        
         <TablePagination
           className="paginator"
           component="div"
+          sx={ { marginTop: loading ? '0' : '4px' } }
           rowsPerPageOptions={ pageSizes }
           count={ rows.length + 10 }
           rowsPerPage={ pageSize }

@@ -1,6 +1,6 @@
-import { Injectable }                 from '@angular/core'
-import { Sort }                       from '@angular/material/sort'
-import { delay, map, Observable, of } from 'rxjs'
+import { Injectable }                      from '@angular/core'
+import { Sort }                            from '@angular/material/sort'
+import { delay, map, Observable, of, tap } from 'rxjs'
 
 import allEtfs from './etfs.json'
 
@@ -55,6 +55,11 @@ export class EtfServiceImpl implements EtfService {
         items: all.slice((page - 1) * pageSize, page * pageSize),
       })),
       delay(2000 * Math.random() + 200),
+      tap(() => {
+        if (Math.random() < 0.2) {
+          throw new Error(`Dziwny błąd`)
+        }
+      }),
     )
   }
   
