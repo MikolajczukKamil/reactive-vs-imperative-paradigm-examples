@@ -68,11 +68,11 @@ import { Etf, EtfService } from './etfs'
 
 @Injectable()
 class CustomMatPaginatorIntl extends MatPaginatorIntl {
-  override itemsPerPageLabel = 'Elementów na stronę'
-  override nextPageLabel = 'Następna strona'
-  override previousPageLabel = 'Poprzednia strona'
-  override firstPageLabel = 'Pierwsza strona'
-  override lastPageLabel = 'Ostatnia strona'
+  override itemsPerPageLabel = 'Wierszy na stronę'
+  override nextPageLabel = 'Przejdź do następnej strony'
+  override previousPageLabel = 'Przejdź do poprzedniej strony'
+  override firstPageLabel = 'Przejdź do pierwszej strony'
+  override lastPageLabel = 'Przejdź do ostatniej strony'
   
   override getRangeLabel = (page: number, pageSize: number, length: number) => {
     if (length === 0 || pageSize === 0) {
@@ -136,9 +136,8 @@ export class ListWithFiltersComponent {
   protected readonly loading = signal(false)
   protected readonly error = signal(false)
   protected readonly page = signal(1)
-  protected readonly pageSize = signal(10)
+  protected readonly pageSize = signal(this.pageSizes[0])
   protected readonly allItems = signal<number>(0)
-  protected readonly pages = computed(() => Math.ceil(this.allItems() / this.pageSize()))
   protected readonly sort = signal<Sort | null>(null)
   
   protected readonly retry$ = new Subject<void>()

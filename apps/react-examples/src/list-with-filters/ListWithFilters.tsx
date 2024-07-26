@@ -56,6 +56,7 @@ const headCells = [
 
 export function ListWithFilters() {
   const [ rows, setRows ] = useState<Etf[]>([])
+  const [ allItems, setAllItems ] = useState(0)
   const [ search, setSearch ] = useState('')
   const [ minPrice, setMinPrice ] = useState('')
   const [ maxPrice, setMaxPrice ] = useState('')
@@ -110,6 +111,7 @@ export function ListWithFilters() {
       .then(page => {
         if (isActive) {
           setRows(page.items)
+          setAllItems(page.itemsCount)
         }
         
         setLoading(false)
@@ -227,9 +229,11 @@ export function ListWithFilters() {
           component="div"
           sx={ { marginTop: loading ? '0' : '4px' } }
           rowsPerPageOptions={ pageSizes }
-          count={ rows.length + 10 }
+          count={ allItems }
           rowsPerPage={ pageSize }
           page={ page }
+          showFirstButton
+          showLastButton
           onPageChange={ handleChangePage }
           onRowsPerPageChange={ handleChangeRowsPerPage }
         />
