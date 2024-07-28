@@ -5,6 +5,7 @@
   "scripts": {
     "start:angular": "npx nx serve angular-examples --port=8080",
     "start:react": "npx nx serve react-examples",
+    "start:plain": "npx nx serve plain-examples",
     "start": "npm run start:angular"
   },
   "private": true,
