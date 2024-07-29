@@ -13,12 +13,12 @@ export abstract class CustomElement<Props = {}> extends HTMLElement {
   protected abstract connectedCallback(): void;
 }
 
-export function defineComponent<Props>(tag: string, Component: CustomElementConstructor): FunctionComponent<Props> & string {
+export function defineComponent(tag: string, Component: CustomElementConstructor) {
   if (customElements.get(tag)) {
     location.reload()
   }
   
   customElements.define(tag, Component)
   
-  return tag as unknown as FunctionComponent<Props> & string
+  return tag;
 }

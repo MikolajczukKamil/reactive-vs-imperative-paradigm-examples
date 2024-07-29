@@ -1,11 +1,13 @@
 import { CustomElement, defineComponent } from './utils'
 
+import './app.module.scss'
 
-export interface NxWelcomeComponentProps {
+
+export interface AppComponentProps {
   title: string;
 }
 
-class NxWelcomeComponent extends CustomElement<NxWelcomeComponentProps> implements NxWelcomeComponentProps {
+class AppComponent extends CustomElement<AppComponentProps> implements AppComponentProps {
   public static observedAttributes = [ 'title' ] as const
   
   public set title(title: string) {
@@ -23,4 +25,4 @@ class NxWelcomeComponent extends CustomElement<NxWelcomeComponentProps> implemen
   }
 }
 
-export const NxWelcome = defineComponent<NxWelcomeComponentProps>('nx-welcome', NxWelcomeComponent)
+export const App = defineComponent('app-root', AppComponent)
