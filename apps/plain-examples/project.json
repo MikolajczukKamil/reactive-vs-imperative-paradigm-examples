@@ -19,7 +19,7 @@
           "apps/plain-examples/src/favicon.ico",
           "apps/plain-examples/src/assets"
         ],
-        "styles": ["apps/plain-examples/src/styles.scss", "node_modules/bootstrap/scss/bootstrap.scss"],
+        "styles": ["apps/plain-examples/src/styles.scss", "node_modules/mdb-ui-kit/css/mdb.min.css"],
         "scripts": [],
         "isolatedConfig": true,
         "webpackConfig": "apps/plain-examples/webpack.config.js"

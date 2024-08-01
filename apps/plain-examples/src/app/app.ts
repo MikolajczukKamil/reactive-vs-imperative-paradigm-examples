@@ -1,6 +1,11 @@
-import { CustomElement, defineComponent } from './utils'
+// @ts-ignore
+import { initMDB, Tab } from 'mdb-ui-kit'
 
-import './app.module.scss'
+import componentTemplate from './app.html'
+
+import { CustomElement, defineComponent } from './utils'
+import './app.scss'
+import './list-with-filters'
 
 
 export interface AppComponentProps {
@@ -8,20 +13,12 @@ export interface AppComponentProps {
 }
 
 class AppComponent extends CustomElement<AppComponentProps> implements AppComponentProps {
-  public static observedAttributes = [ 'title' ] as const
-  
-  public set title(title: string) {
-    this.p.innerText = `Hello ${ title }!`
-  }
-  
-  public get title(): string {
-    return this.getAttribute('title') || ''
-  }
-  
-  private readonly p = document.createElement('p')
+  public constructor() { super(componentTemplate) }
   
   protected override connectedCallback(): void {
-    this.appendChild(this.p)
+    super.connectedCallback()
+    
+    initMDB({ Tab })
   }
 }
 
