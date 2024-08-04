@@ -1,5 +1,5 @@
-<div class="card">
-  <div class="card-body filters-card">
+<div class="card filters-card">
+  <div class="card-body">
 
     <div class="input-group input-group-lg">
       <div class="form-outline search-field" data-mdb-input-init>
@@ -24,32 +24,24 @@
       </div>
     </div>
 
-    <div class="form-outline" data-mdb-input-init="" data-mdb-input-initialized="true">
-      <input
-        class="form-control select-input placeholder-active active"
-        type="text"
-        role="listbox"
-        aria-multiselectable="false"
-        aria-disabled="false"
-        aria-haspopup="true"
-        aria-expanded="false"
-        readonly="true"
-      >
-      <span class="select-arrow"></span>
-      <div class="form-notch">
-        <div class="form-notch-leading" style="width: 9px;"></div>
-        <div class="form-notch-middle" style="width: 0px;"></div>
-        <div class="form-notch-trailing"></div>
-      </div>
-      <div class="form-label select-fake-value">One</div>
-    </div>
+    <select class="form-select">
+      <option value="" selected>Waluta</option>
+      <option value="USD">Dolar</option>
+      <option value="EUR">Euro</option>
+      <option value="GBP">Funt</option>
+      <option value="CHF">Frank</option>
+      <option value="PLN">Złoty</option>
+    </select>
 
+    <button type="button" id="clear-filters" class="btn btn-link" data-mdb-ripple-init data-mdb-ripple-color="dark">
+      Wyczyść i przeładuj
+    </button>
   </div>
 </div>
 
 <div class="card">
   <div class="card-body">
-    <table>
+    <table class="table align-middle mb-0 bg-white">
       <thead>
         <tr>
           <td>Nazwa</td>
@@ -58,25 +50,19 @@
         </tr>
       </thead>
 
-      <tbody>
-        <tr>
-          <td>aaa</td>
-          <td>1</td>
-          <td>USA</td>
-        </tr>
-
-        <tr>
-          <td>bbb</td>
-          <td>22</td>
-          <td>EUR</td>
-        </tr>
-
-        <tr>
-          <td>ccc</td>
-          <td>3</td>
-          <td>PLN</td>
+      <tbody id="instruments-list">
+        <tr style="display: none">
+          <td>NAME</td>
+          <td>PRICE</td>
+          <td>CURRENCY</td>
         </tr>
       </tbody>
     </table>
+
+    <div class="progress" id="loading">
+      <div class="progress-bar progress-bar-animated" role="progressbar" style="width: 75%;"></div>
+    </div>
+
+
   </div>
 </div>

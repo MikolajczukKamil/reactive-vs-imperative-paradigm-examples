@@ -8,6 +8,37 @@
 }
 
 .filters-card {
-  display: flex;
-  gap: 8px;
+  margin-bottom: 16px;
+
+  .card-body {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+
+
+
+// Anikacja ładowania
+
+.progress-bar {
+  width: 50%;
+  margin-left: 0;
+  height: 100%;
+  animation: loading 2s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+}
+
+@keyframes loading {
+  0% {
+    width: 0;
+    margin-left: 0;
+  }
+  50% {
+    width: 80%;
+    margin-left: 0;
+  }
+  100% {
+    width: 0;
+    margin-left: 100%;
+  }
 }
