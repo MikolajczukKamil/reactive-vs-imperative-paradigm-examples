@@ -1,8 +1,8 @@
+import { Etf, injectEtfsService } from 'common/src/lib/plain/etfs'
 // @ts-ignore
-import { initMDB, Ripple } from 'mdb-ui-kit'
+import { initMDB, Ripple }        from 'mdb-ui-kit'
 
 import { CustomElement, defineComponent } from '../utils'
-import { Etf, injectEtfsService }         from './etfs'
 
 import componentTemplate from './list-with-filters.html'
 import './list-with-filters.scss'

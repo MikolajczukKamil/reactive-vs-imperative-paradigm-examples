@@ -2,7 +2,6 @@ import { AsyncPipe, JsonPipe } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   Injectable,
   signal,
@@ -50,6 +49,8 @@ import {
 import {
   MatTableModule,
 }                              from '@angular/material/table'
+
+import { Etf, EtfService, Sort as EtfSort } from 'common/src/lib/angular/etfs'
 import {
   debounceTime,
   map,
@@ -61,9 +62,7 @@ import {
   Subject,
   switchMap,
   tap,
-}                              from 'rxjs'
-
-import { Etf, EtfService } from './etfs'
+}                                           from 'rxjs'
 
 
 @Injectable()
@@ -175,7 +174,7 @@ export class ListWithFiltersComponent {
       tap(() => {
         this.loading.set(true)
       }),
-      switchMap(() => this.etfService.getEtfList(this.page(), this.pageSize(), this.filters.value, this.sort())),
+      switchMap(() => this.etfService.getEtfList(this.page(), this.pageSize(), this.filters.value, this.sort()?.active as EtfSort | undefined)),
       map((response) => {
         this.allItems.set(response.itemsCount)
         

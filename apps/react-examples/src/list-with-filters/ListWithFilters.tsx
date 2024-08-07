@@ -23,7 +23,7 @@ import {
 import { SelectChangeEvent }                from '@mui/material/Select/SelectInput'
 import { ChangeEvent, useEffect, useState } from 'react'
 
-import { Etf, Sort, useEtfsService } from './etfs'
+import { Etf, Sort, useEtfsService } from 'common/src/lib/react/etfs'
 
 
 interface Currency {

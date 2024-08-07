@@ -1,38 +1,16 @@
-import allEtfs from './etfs.json'
+import { EtfService }                  from './etf.service'
+import allEtfs                         from './etfs.json'
+import { Etf, EtfPage, Filters, Sort } from './types'
 
-
-export type SortDirection = 'asc' | 'desc' | false;
-
-export interface Sort {
-  active: string;
-  direction: SortDirection;
-}
-
-export interface Etf {
-  readonly name: string
-  readonly currency: string
-  readonly price: number
-}
-
-export interface EtfPage {
-  readonly items: Etf[];
-  readonly itemsCount: number;
-}
-
-export interface Filters {
-  readonly search?: string | null
-  readonly currency?: string | null
-  readonly minPrice?: number | null
-  readonly maxPrice?: number | null
-}
 
 function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-
-class EtfServiceImpl implements EtfService {
-  public async getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort | null): Promise<EtfPage> {
+export class EtfLocalImplService extends EtfService {
+  public override async getEtfList(page: number, pageSize: number, filters: Filters = {}, sort?: Sort | null): Promise<EtfPage> {
+    console.log('Request start', { page, pageSize, filters, sort })
+    
     let list: Etf[] = allEtfs.filter(e => e.currency !== '—' && e.price > 0)
     
     list = list.filter((el) => this.filter(el, filters))
@@ -46,7 +24,7 @@ class EtfServiceImpl implements EtfService {
         
         if (typeof av === 'string') {
           res = av.localeCompare(bv as string)
-        } else if (typeof av === 'number') {
+        } else {
           res = (bv as number) - av
         }
         
@@ -87,10 +65,3 @@ class EtfServiceImpl implements EtfService {
   }
 }
 
-export interface EtfService {
-  getEtfList(page: number, pageSize: number, filters?: Filters, sort?: Sort | null): Promise<EtfPage>;
-}
-
-export function injectEtfsService(): EtfService {
-  return new EtfServiceImpl()
-}
