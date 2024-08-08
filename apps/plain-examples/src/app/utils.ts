@@ -1,6 +1,8 @@
 export abstract class CustomElement<Props = {}> extends HTMLElement {
   protected attributeChangedCallback(name: keyof Props, _: null | string, value: Props[keyof Props]): void {
     try {
+      console.debug({ [name]: value });
+      
       (this as unknown as Props)[name] = value
     } catch (e) {
       console.error('CustomElement.attributeChangedCallback', { name, value }, e)
@@ -9,15 +11,48 @@ export abstract class CustomElement<Props = {}> extends HTMLElement {
   
   protected readonly template: HTMLDivElement
   
+  protected connected = false
+  
   protected constructor(template: string) {
     super()
     
     this.template = createTemplate(template)
   }
   
+  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
+  querySelector<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
+  querySelector<K extends keyof MathMLElementTagNameMap>(selectors: K): MathMLElementTagNameMap[K] | null;
+  querySelector<K extends keyof HTMLElementDeprecatedTagNameMap>(selectors: K): HTMLElementDeprecatedTagNameMap[K] | null;
+  querySelector<E extends Element = Element>(selectors: string): E | null;
+  
+  public override querySelector(selectors: string): Element | null {
+    if (this.connected) {
+      return super.querySelector(selectors)
+    }
+    
+    return this.template.querySelector(selectors)
+  }
+  
+  querySelectorAll<K extends keyof HTMLElementTagNameMap>(selectors: K): NodeListOf<HTMLElementTagNameMap[K]>;
+  querySelectorAll<K extends keyof SVGElementTagNameMap>(selectors: K): NodeListOf<SVGElementTagNameMap[K]>;
+  querySelectorAll<K extends keyof MathMLElementTagNameMap>(selectors: K): NodeListOf<MathMLElementTagNameMap[K]>;
+  querySelectorAll<K extends keyof HTMLElementDeprecatedTagNameMap>(selectors: K): NodeListOf<HTMLElementDeprecatedTagNameMap[K]>;
+  querySelectorAll<E extends Element = Element>(selectors: string): NodeListOf<E>;
+  
+  public override querySelectorAll(selectors: string): NodeListOf<Element> {
+    if (this.connected) {
+      return super.querySelectorAll(selectors)
+    }
+    
+    return this.template.querySelectorAll(selectors)
+  }
+  
   protected connectedCallback(): void {
+    this.connected = true
     this.append(...Array.from(this.template.children))
   }
+  
+  protected disconnectedCallback(): void {}
 }
 
 export function defineComponent(tag: string, Component: CustomElementConstructor) {

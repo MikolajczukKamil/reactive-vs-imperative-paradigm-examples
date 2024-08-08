@@ -6,6 +6,7 @@ import { CustomElement, defineComponent } from '../utils'
 
 import componentTemplate from './list-with-filters.html'
 import './list-with-filters.scss'
+import '../app-paginator'
 
 
 export interface AppComponentProps {
