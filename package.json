@@ -6,7 +6,8 @@
     "start:angular": "npx nx serve angular-examples --port=8080",
     "start:react": "npx nx serve react-examples --port=8081",
     "start:plain": "npx nx serve plain-examples --port=8082",
-    "start": "npm run start:angular"
+    "start:be": "npx nx serve be-data-app --port=8888",
+    "start": "npm run start:be"
   },
   "private": true,
   "dependencies": {
