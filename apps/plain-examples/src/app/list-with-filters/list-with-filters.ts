@@ -13,7 +13,7 @@ class ListWithFilterComponent extends CustomElement {
   public isLoading = false
   public instruments: Etf[] = []
   public page = 1
-  public pageSize = 10
+  public pageSize = 5
   public sorting?: Sort | null
   public filters: Filters = {
     search: null,
@@ -32,21 +32,45 @@ class ListWithFilterComponent extends CustomElement {
     
     this.bindChangeValue('#search-input', e => {
       this.filters = { ...this.filters, search: e.value }
+      
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
+      
       this.reloadInstrument()
     })
     
     this.bindChangeValue('#price-min-input', e => {
       this.filters = { ...this.filters, minPrice: parseFloat(e.value) }
+      
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
+      
       this.reloadInstrument()
     })
     
     this.bindChangeValue('#price-max-input', e => {
       this.filters = { ...this.filters, maxPrice: parseFloat(e.value) }
+      
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
+      
       this.reloadInstrument()
     })
     
     this.bindChangeValue('#input-currency', e => {
       this.filters = { ...this.filters, currency: e.value }
+      
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
+      
       this.reloadInstrument()
     })
     
@@ -58,6 +82,11 @@ class ListWithFilterComponent extends CustomElement {
         maxPrice: null,
       }
       
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
+      
       this.reloadInstrument()
       this.reloadFilters()
     })
@@ -66,6 +95,11 @@ class ListWithFilterComponent extends CustomElement {
     
     paginator.addEventListener('page-size', (e) => {
       this.pageSize = parseInt(this.eventDetail(e))
+      
+      if (this.page !== 1) {
+        this.page = 1
+        this.updatePaginator()
+      }
       
       this.reloadInstrument()
     })

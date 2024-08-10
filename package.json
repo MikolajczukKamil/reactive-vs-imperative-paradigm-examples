@@ -4,8 +4,8 @@
   "license": "MIT",
   "scripts": {
     "start:angular": "npx nx serve angular-examples --port=8080",
-    "start:react": "npx nx serve react-examples",
-    "start:plain": "npx nx serve plain-examples",
+    "start:react": "npx nx serve react-examples --port=8081",
+    "start:plain": "npx nx serve plain-examples --port=8082",
     "start": "npm run start:angular"
   },
   "private": true,
