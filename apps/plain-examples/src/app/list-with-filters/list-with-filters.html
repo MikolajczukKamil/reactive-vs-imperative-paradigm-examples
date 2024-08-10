@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <select class="form-select">
+    <select class="form-select" id="input-currency">
       <option value="" selected>Waluta</option>
       <option value="USD">Dolar</option>
       <option value="EUR">Euro</option>
@@ -64,6 +64,7 @@
     </div>
 
     <app-paginator
+       id="instruments-paginator"
        page="1"
        length="1000"
        pagesize="10"

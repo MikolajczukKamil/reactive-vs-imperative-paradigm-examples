@@ -19,6 +19,14 @@ export abstract class CustomElement<Props = {}> extends HTMLElement {
     this.template = createTemplate(template)
   }
   
+  protected bindChangeValue(selector: string, bindingFn: (el: HTMLInputElement) => void): void {
+    const element = this.querySelector<HTMLInputElement>(selector)!
+    
+    element.addEventListener('change', () => {
+      bindingFn(element)
+    })
+  }
+  
   querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
   querySelector<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
   querySelector<K extends keyof MathMLElementTagNameMap>(selectors: K): MathMLElementTagNameMap[K] | null;

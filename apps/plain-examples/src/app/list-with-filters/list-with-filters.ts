@@ -1,6 +1,6 @@
-import { Etf, injectEtfsService } from 'common/src/lib/plain/etfs'
+import { Etf, Filters, injectEtfsService, Sort } from 'common/src/lib/plain/etfs'
 // @ts-ignore
-import { initMDB, Ripple }        from 'mdb-ui-kit'
+import { initMDB, Ripple }                       from 'mdb-ui-kit'
 
 import { CustomElement, defineComponent } from '../utils'
 
@@ -9,46 +9,108 @@ import './list-with-filters.scss'
 import '../app-paginator'
 
 
-export interface AppComponentProps {
-  title: string;
-}
-
-class ListWithFilterComponent extends CustomElement<AppComponentProps> implements AppComponentProps {
-  public static observedAttributes = [ 'title' ] as const
-  
+class ListWithFilterComponent extends CustomElement {
   public isLoading = false
   public instruments: Etf[] = []
-  private etfService = injectEtfsService()
-  
-  public set title(title: string) {
-    this.template.innerText = `Hello ${ title }!`
+  public page = 1
+  public pageSize = 10
+  public sorting?: Sort | null
+  public filters: Filters = {
+    search: null,
+    currency: null,
+    minPrice: null,
+    maxPrice: null,
   }
+  public allItems = 0
   
-  public get title(): string {
-    return this.getAttribute('title') || ''
-  }
+  private readonly etfService = injectEtfsService()
   
   public constructor() { super(componentTemplate) }
   
   protected override connectedCallback(): void {
     super.connectedCallback()
     
+    this.bindChangeValue('#search-input', e => {
+      this.filters = { ...this.filters, search: e.value }
+      this.reloadInstrument()
+    })
+    
+    this.bindChangeValue('#price-min-input', e => {
+      this.filters = { ...this.filters, minPrice: parseFloat(e.value) }
+      this.reloadInstrument()
+    })
+    
+    this.bindChangeValue('#price-max-input', e => {
+      this.filters = { ...this.filters, maxPrice: parseFloat(e.value) }
+      this.reloadInstrument()
+    })
+    
+    this.bindChangeValue('#input-currency', e => {
+      this.filters = { ...this.filters, currency: e.value }
+      this.reloadInstrument()
+    })
+    
+    this.querySelector('#clear-filters')!.addEventListener('click', () => {
+      this.filters = {
+        search: null,
+        currency: null,
+        minPrice: null,
+        maxPrice: null,
+      }
+      
+      this.reloadInstrument()
+      this.reloadFilters()
+    })
+    
+    const paginator = this.querySelector('#instruments-paginator')!
+    
+    paginator.addEventListener('page-size', (e) => {
+      this.pageSize = parseInt(this.eventDetail(e))
+      
+      this.reloadInstrument()
+    })
+    
+    paginator.addEventListener('page', (e) => {
+      this.page = parseInt(this.eventDetail(e))
+      
+      this.reloadInstrument()
+    })
+    
     this.reloadInstrument()
+    this.reloadFilters()
+    this.updatePaginator()
     
     initMDB({ Ripple })
+  }
+  
+  private reloadFilters(): void {
+    this.querySelector<HTMLInputElement>('#search-input')!.value = this.filters.search || ''
+    this.querySelector<HTMLInputElement>('#price-min-input')!.value = this.filters.minPrice?.toString() || ''
+    this.querySelector<HTMLInputElement>('#price-max-input')!.value = this.filters.maxPrice?.toString() || ''
+    this.querySelector<HTMLSelectElement>('#input-currency')!.value = this.filters.currency?.toString() || ''
+  }
+  
+  private updatePaginator(): void {
+    const paginator = this.querySelector('#instruments-paginator')!
+    
+    paginator.setAttribute('page', this.page.toString())
+    paginator.setAttribute('length', this.allItems.toString())
+    paginator.setAttribute('pagesize', this.pageSize.toString())
   }
   
   private reloadInstrument(): void {
     this.isLoading = true
     this.updateLoading()
     
-    this.etfService.getEtfList(1, 10)
+    this.etfService.getEtfList(this.page, this.pageSize, this.filters, this.sorting)
         .then((page) => {
           this.isLoading = false
           this.instruments = page.items
+          this.allItems = page.itemsCount
           
           this.updateList()
           this.updateLoading()
+          this.updatePaginator()
         })
         .catch((error) => {
           console.error(error)
@@ -79,6 +141,10 @@ class ListWithFilterComponent extends CustomElement<AppComponentProps> implement
       }),
     )
     
+  }
+  
+  private eventDetail(e: Event): string {
+    return (e as any).detail || ''
   }
 }
 
