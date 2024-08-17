@@ -15,9 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@reactive-vs-imperative-paradigm-examples/common": [
-        "common/src/index.ts"
-      ]
+      "@org/common-lib": ["common-lib/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
