@@ -59,6 +59,22 @@
       </tbody>
     </table>
 
+    <div class="error" style="display: none">
+        <svg
+          class="icon"
+          style="display: none"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          data-testid="ErrorIcon"
+          title="Error"
+        >
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"></path>
+        </svg>
+
+      <p>Wystąpił niespodziewany błąd</p>
+      <button class="btn" data-mdb-ripple-init data-mdb-ripple-color="dark">Spróbuj ponownie</button>
+    </div>
+
     <div class="progress" id="loading">
       <div class="progress-bar progress-bar-animated" role="progressbar" style="width: 75%;"></div>
     </div>

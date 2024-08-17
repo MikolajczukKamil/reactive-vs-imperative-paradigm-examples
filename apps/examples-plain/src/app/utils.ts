@@ -1,7 +1,7 @@
 export abstract class CustomElement<Props = {}> extends HTMLElement {
   protected attributeChangedCallback(name: keyof Props, _: null | string, value: Props[keyof Props]): void {
     try {
-      console.debug({ [name]: value });
+      // console.debug({ [name]: value });
       
       (this as unknown as Props)[name] = value
     } catch (e) {

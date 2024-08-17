@@ -1,5 +1,6 @@
-import { Etf }             from '@org/common-lib';
-import { initMDB, Ripple, Input, Button } from 'mdb-ui-kit';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Etf }                            from '@org/common-lib';
+import { Button, initMDB, Input, Ripple } from 'mdb-ui-kit';
 
 import { CustomElement, defineComponent } from '../utils';
 
@@ -23,6 +24,7 @@ class ListWithFilterComponent extends CustomElement {
   public maxPrice = '';
   public currency = '';
   public allItems = 0;
+  public isError = false;
   
   private readonly etfService = injectEtfsService();
   
@@ -109,11 +111,22 @@ class ListWithFilterComponent extends CustomElement {
       this.reloadInstrument();
     });
     
+    this.querySelector('.error button')!.addEventListener('click', () => {
+      console.log('Reload');
+      this.reloadInstrument();
+    });
+    
     this.reloadInstrument();
     this.reloadFilters();
     this.updatePaginator();
+    this.updateError();
     
-    initMDB({ Ripple, Input ,Button});
+    initMDB({ Ripple, Input, Button });
+  }
+  
+  private updateError(): void {
+    this.querySelector<HTMLElement>('.error')!.style.display = this.isError ? '' : 'none';
+    this.querySelector<HTMLElement>('.error .icon')!.style.display = this.instruments.length === 0 ? '' : 'none';
   }
   
   private reloadFilters(): void {
@@ -131,9 +144,21 @@ class ListWithFilterComponent extends CustomElement {
     paginator.setAttribute('pagesize', this.pageSize.toString());
   }
   
+  private clearCallback?: () => void;
+  
   private reloadInstrument(): void {
+    this.clearCallback?.();
+    let active = true;
+    
+    this.clearCallback = () => {
+      active = false;
+    };
+    
     this.isLoading = true;
+    this.isError = false;
+    
     this.updateLoading();
+    this.updateError();
     
     this.etfService.getEtfList(this.page, this.pageSize, {
             search: this.search || null,
@@ -145,19 +170,27 @@ class ListWithFilterComponent extends CustomElement {
           this.sortDirection
         )
         .then((page) => {
-          this.isLoading = false;
-          this.instruments = page.items;
-          this.allItems = page.itemsCount;
-          
-          this.updateList();
-          this.updateLoading();
-          this.updatePaginator();
+          if (active) {
+            console.log({ page })
+            
+            this.isLoading = false;
+            this.instruments = page.items;
+            this.allItems = page.itemsCount;
+            
+            this.updateList();
+            this.updateLoading();
+            this.updatePaginator();
+          }
         })
         .catch((error) => {
-          console.error(error);
-          
-          this.isLoading = false;
-          this.updateLoading();
+          if (active) {
+            console.error(error);
+            
+            this.isError = true;
+            this.isLoading = false;
+            this.updateLoading();
+            this.updateError();
+          }
         });
   }
   

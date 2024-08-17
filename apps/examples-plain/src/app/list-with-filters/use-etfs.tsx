@@ -1,5 +1,5 @@
 import { ETF_SERVER, EtfPage } from '@org/common-lib';
-import { firstValueFrom }      from 'rxjs';
+import { firstValueFrom, tap } from 'rxjs';
 import { fromFetch }           from 'rxjs/fetch';
 
 
@@ -23,6 +23,13 @@ export class EtfService {
       'max-price': filters.priceMax
     })).map(([ key, value ]) => key + '=' + value.toString()).join('&'),
       { selector: response => response.json() }
+    ).pipe(
+      tap(v => {
+        if (v.message) {
+          console.error('ERROR', v);
+          throw new Error(v.message);
+        }
+      })
     ))
       .catch(error => {
         console.error(error);
