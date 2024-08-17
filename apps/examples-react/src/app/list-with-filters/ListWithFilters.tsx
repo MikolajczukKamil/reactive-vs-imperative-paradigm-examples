@@ -18,11 +18,14 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
-  TextField
+  TextField,
+  Typography
 }                                           from '@mui/material';
 import { SelectChangeEvent }                from '@mui/material/Select/SelectInput';
 import { Etf }                              from '@org/common-lib';
 import { ChangeEvent, useEffect, useState } from 'react';
+
+import styles from './list-with-filters.module.scss';
 
 import { useEtfsService } from './use-etfs';
 
@@ -66,7 +69,9 @@ export function ListWithFilters() {
   const [ sortDirection, setSortDirection ] = useState<undefined | 'asc' | 'desc'>(undefined);
   const [ page, setPage ] = useState(0);
   const [ pageSize, setPageSize ] = useState(pageSizes[0]);
-  const [ loading, setLoading ] = useState(false);
+  const [ isLoading, setIsLoading ] = useState(false);
+  const [ isError, setIsError ] = useState(false);
+  const [ retry, setRetry ] = useState(0);
   
   const etfService = useEtfsService();
   
@@ -95,7 +100,9 @@ export function ListWithFilters() {
   useEffect(() => {
     let isActive = true;
     
-    setLoading(true);
+    console.log({ retry })
+    setIsLoading(true);
+    setIsError(false);
     
     etfService
       .getEtfList(
@@ -112,21 +119,24 @@ export function ListWithFilters() {
       )
       .then(page => {
         if (isActive) {
-          console.log({ page })
+          console.log({ page });
+          
           setRows(page.items);
           setAllItems(page.itemsCount);
+          setIsLoading(false);
         }
-        
-        setLoading(false);
       })
       .catch((e) => {
-        console.log({ e })
-        
-        setLoading(false);
+        if (isActive) {
+          console.log({ e });
+          
+          setIsLoading(false);
+          setIsError(true);
+        }
       });
     
     return () => { isActive = false; };
-  }, [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection ]);
+  }, [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection, retry ]);
   
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = pageSize - rows.length;
@@ -136,6 +146,10 @@ export function ListWithFilters() {
     
     setSortProperty(property);
     setSortDirection(isAsc ? 'desc' : 'asc');
+  }
+  
+  function handleRetry() {
+    setRetry(v => v + 1)
   }
   
   return (
@@ -216,7 +230,7 @@ export function ListWithFilters() {
                   <TableCell>{ row.currency }</TableCell>
                 </TableRow>
               )) }
-              { emptyRows > 0 && (
+              { (emptyRows > 0 && !isError) && (
                 <TableRow style={ { height: 53 * emptyRows } }>
                   <TableCell colSpan={ 3 } />
                 </TableRow>
@@ -225,12 +239,31 @@ export function ListWithFilters() {
           </Table>
         </TableContainer>
         
-        { loading && <LinearProgress /> }
+        { isError && (
+          <div className={ styles.error }>
+            {
+              !rows.length && (
+                <svg
+                  className={ styles.icon }
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  data-testid="ErrorIcon"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"></path>
+                </svg>
+              )
+            }
+            <Typography>Wystąpił niespodziewany błąd</Typography>
+            <Button onClick={ handleRetry }>Spróbuj ponownie</Button>
+          </div>
+        ) }
+        
+        { isLoading && <LinearProgress /> }
         
         <TablePagination
           className="paginator"
           component="div"
-          sx={ { marginTop: loading ? '0' : '4px' } }
+          sx={ { marginTop: isLoading ? '0' : '4px' } }
           rowsPerPageOptions={ pageSizes }
           count={ allItems }
           rowsPerPage={ pageSize }
