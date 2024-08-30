@@ -1,4 +1,4 @@
-import SearchIcon                           from '@mui/icons-material/Search';
+import SearchIcon                from '@mui/icons-material/Search';
 import {
   Box,
   Button,
@@ -20,12 +20,13 @@ import {
   TableSortLabel,
   TextField,
   Typography
-}                                           from '@mui/material';
-import { SelectChangeEvent }                from '@mui/material/Select/SelectInput';
-import { Etf }                              from '@org/common-lib';
-import { ChangeEvent, useEffect, useState } from 'react';
+}                                from '@mui/material';
+import { SelectChangeEvent }     from '@mui/material/Select/SelectInput';
+import { Etf }                   from '@org/common-lib';
+import { ChangeEvent, useState } from 'react';
 
-import styles from './list-with-filters.module.scss';
+import styles                 from './list-with-filters.module.scss';
+import { useDebouncedEffect } from './use-debunce-effect';
 
 import { useEtfsService } from './use-etfs';
 
@@ -97,42 +98,45 @@ export function ListWithFilters() {
     setSortDirection(undefined);
   }
   
-  useEffect(() => {
-    console.log({ retry });
-    setIsLoading(true);
-    setIsError(false);
-    
-    const sub = etfService
-      .getEtfList(
-        page + 1,
-        pageSize,
-        {
-          search: search || null,
-          priceMin: parseFloat(minPrice) || null,
-          priceMax: parseFloat(maxPrice) || null,
-          currency: currency || null
-        },
-        sortProperty,
-        sortDirection
-      )
-      .subscribe({
-        next: page => {
-          console.log({ page });
-          
-          setRows(page.items);
-          setAllItems(page.itemsCount);
-          setIsLoading(false);
-        },
-        error: (e) => {
-          console.log({ e });
-          
-          setIsLoading(false);
-          setIsError(true);
-        }
-      });
-    
-    return () => { sub.unsubscribe(); };
-  }, [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection, retry ]);
+  useDebouncedEffect(() => {
+      console.log({ retry });
+      setIsLoading(true);
+      setIsError(false);
+      
+      const sub = etfService
+        .getEtfList(
+          page + 1,
+          pageSize,
+          {
+            search: search || null,
+            priceMin: parseFloat(minPrice) || null,
+            priceMax: parseFloat(maxPrice) || null,
+            currency: currency || null
+          },
+          sortProperty,
+          sortDirection
+        )
+        .subscribe({
+          next: page => {
+            console.log({ page });
+            
+            setRows(page.items);
+            setAllItems(page.itemsCount);
+            setIsLoading(false);
+          },
+          error: (e) => {
+            console.log({ e });
+            
+            setIsLoading(false);
+            setIsError(true);
+          }
+        });
+      
+      return () => { sub.unsubscribe(); };
+    },
+    [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection, retry ],
+    200
+  );
   
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = pageSize - rows.length;
