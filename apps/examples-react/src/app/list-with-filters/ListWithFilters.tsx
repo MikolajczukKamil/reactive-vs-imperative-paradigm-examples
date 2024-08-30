@@ -98,13 +98,11 @@ export function ListWithFilters() {
   }
   
   useEffect(() => {
-    let isActive = true;
-    
-    console.log({ retry })
+    console.log({ retry });
     setIsLoading(true);
     setIsError(false);
     
-    etfService
+    const sub = etfService
       .getEtfList(
         page + 1,
         pageSize,
@@ -117,17 +115,15 @@ export function ListWithFilters() {
         sortProperty,
         sortDirection
       )
-      .then(page => {
-        if (isActive) {
+      .subscribe({
+        next: page => {
           console.log({ page });
           
           setRows(page.items);
           setAllItems(page.itemsCount);
           setIsLoading(false);
-        }
-      })
-      .catch((e) => {
-        if (isActive) {
+        },
+        error: (e) => {
           console.log({ e });
           
           setIsLoading(false);
@@ -135,7 +131,7 @@ export function ListWithFilters() {
         }
       });
     
-    return () => { isActive = false; };
+    return () => { sub.unsubscribe(); };
   }, [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection, retry ]);
   
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -149,7 +145,7 @@ export function ListWithFilters() {
   }
   
   function handleRetry() {
-    setRetry(v => v + 1)
+    setRetry(v => v + 1);
   }
   
   return (
@@ -166,17 +162,33 @@ export function ListWithFilters() {
           } }
         >
           <TextField
-            label="Szukaj" variant="outlined" InputProps={ {
-            endAdornment: (
-              <InputAdornment position="end">
-                <SearchIcon />
-              </InputAdornment>
-            )
-          } }
+            label="Szukaj"
+            variant="outlined"
+            InputProps={ {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            } }
+            value={ search }
+            onChange={ e => setSearch(e.target.value) }
           />
           
-          <TextField label="Cena minimalna" variant="outlined" type="number" />
-          <TextField label="Cena maksymalna" variant="outlined" type="number" />
+          <TextField
+            label="Cena minimalna"
+            variant="outlined"
+            type="number"
+            value={ minPrice }
+            onChange={ e => setMinPrice(e.target.value) }
+          />
+          <TextField
+            label="Cena maksymalna"
+            variant="outlined"
+            type="number"
+            value={ maxPrice }
+            onChange={ e => setMaxPrice(e.target.value) }
+          />
           
           <FormControl>
             <InputLabel>Waluta</InputLabel>
