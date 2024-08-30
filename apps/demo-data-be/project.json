@@ -1,0 +1,28 @@
+{
+  "name": "demo-data-be",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/demo-data-be/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": [
+        "build"
+      ],
+      "options": {
+        "buildTarget": "demo-data-be:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "demo-data-be:build:development"
+        },
+        "production": {
+          "buildTarget": "demo-data-be:build:production"
+        }
+      }
+    }
+  }
+}

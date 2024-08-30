@@ -1,0 +1,25 @@
+app-paginator {
+  display: flex;
+  margin: 8px 0;
+  align-items: center;
+  justify-content: end;
+}
+
+.pages {
+  margin: 0 8px;
+  display: inline;
+  width: min-content;
+}
+
+.navigation-buttons {
+  margin-left: 8px;
+
+  .btn {
+    padding: 6px;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
