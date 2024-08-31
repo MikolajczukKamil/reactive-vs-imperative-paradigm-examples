@@ -50,7 +50,7 @@ export class EtfService {
     await wait(2000 * Math.random() + 200);
     
     if (Math.random() < 0.5) {
-      throw new Error(`Dziwny błąd, uwaga pojawia się losowo`)
+      // throw new Error(`Dziwny błąd, uwaga pojawia się losowo`)
     }
     
     return {
