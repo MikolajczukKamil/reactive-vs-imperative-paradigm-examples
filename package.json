@@ -27,6 +27,7 @@
     "@nestjs/common": "^10.0.2",
     "@nestjs/core": "^10.0.2",
     "@nestjs/platform-express": "^10.0.2",
+    "@nestjs/swagger": "^7.4.0",
     "axios": "^1.6.0",
     "html-loader": "^5.1.0",
     "mdb-ui-kit": "^7.3.2",
