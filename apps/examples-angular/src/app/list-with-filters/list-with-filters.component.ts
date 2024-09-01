@@ -1,13 +1,13 @@
 import { AsyncPipe, JsonPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  Component,
+  Component, computed, effect,
   inject,
   Injectable,
   signal,
   Signal,
   ViewChild
-}                              from '@angular/core';
+} from '@angular/core';
 import {
   toObservable,
   toSignal
@@ -55,15 +55,13 @@ import {
 import {
   debounceTime,
   map,
-  merge,
   Observable,
   of,
   retry,
-  startWith,
   Subject,
   switchMap,
   tap
-}                              from 'rxjs';
+} from 'rxjs';
 
 import { EtfService } from './etf.service';
 
@@ -94,6 +92,18 @@ const DEBOUNCE_TIME = 200;
 interface Currency {
   code: string;
   name: string;
+}
+
+interface Values {
+  filters: {
+    search?: string
+    priceMin?: number | null
+    priceMax?: number | null
+    currency?: string | null
+  }
+  page: number
+  pageSize: number
+  sort: Sort | null
 }
 
 @Component({
@@ -151,51 +161,52 @@ export class ListWithFiltersComponent {
     currency: new FormControl<string | null>(null)
   });
   
-  private readonly reloadValues$: Observable<unknown> = merge(
-    this.filters.valueChanges.pipe(tap(() => {
-      if (this.page() !== 1) {
-        console.log('Update', this.page());
-        this.page.set(1);
-      }
-    })),
-    toObservable(this.page),
-    toObservable(this.pageSize),
-    toObservable(this.sort)
-  );
-  
-  protected readonly loadedItems: Signal<Etf[]> = toSignal(
-    this.reloadValues$.pipe(
-      startWith(null),
-      debounceTime(DEBOUNCE_TIME),
-      switchMap(() => this.loadInstruments())
-    ),
-    { initialValue: [] }
-  );
-  
-  private loadInstruments(): Observable<Etf[]> {
-    return of(null).pipe(
-      tap(() => {
-        this.loading.set(true);
-      }),
-      switchMap(() => this.etfService.getEtfList(this.page(), this.pageSize(), this.filters.value, this.sort()?.active, this.sort()?.direction)),
-      map((response) => {
-        this.allItems.set(response.itemsCount);
-        
-        this.loading.set(false);
-        this.error.set(false);
-        
-        return response.items;
-      }),
-      retry({
-        delay: () => {
-          this.loading.set(false);
-          this.error.set(true);
-          
-          return this.retry$;
-        }
-      })
-    );
-  }
+private readonly filtersValue = toSignal(this.filters.valueChanges, { initialValue: this.filters.value });
+
+constructor() {
+  effect(() => {
+    const change = [this.sort(), this.filtersValue()];
+    if (!!change) this.page.set(1);
+  }, { allowSignalWrites: true });
+}
+
+private readonly values = computed(() => ({
+  filters: this.filtersValue(), page: this.page(),
+  pageSize: this.pageSize(), sort: this.sort(),
+}))
+
+protected readonly loadedItems: Signal<Etf[]> = toSignal(
+  toObservable(this.values).pipe(
+    debounceTime(DEBOUNCE_TIME),
+    switchMap((values) => this.loadInstruments(values))
+  ), { initialValue: [] } );
+
+private loadInstruments(values: Values): Observable<Etf[]> {
+  return of(null).pipe(
+    tap(() => { this.loading.set(true) }),
+    switchMap(() =>
+      this.etfService.getEtfList(
+        values.page,
+        values.pageSize,
+        values.filters,
+        values.sort?.active,
+        values.sort?.direction
+      ) ),
+    map((response) => {
+      this.allItems.set(response.itemsCount)
+      this.loading.set(false)
+      this.error.set(false)
+      return response.items
+    }),
+    retry({
+      delay: () => {
+        this.loading.set(false)
+        this.error.set(true)
+        return this.retry$
+      },
+    })
+  )
+}
   
   protected resetFilters(): void {
     this.filters.reset();
