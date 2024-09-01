@@ -13,7 +13,7 @@ export class EtfEntity implements Etf {
   readonly price: number = 472;
 }
 
-export abstract class EtfPageEntity implements EtfPage {
+export class EtfPageEntity implements EtfPage {
   @ApiProperty({
     example: [ new EtfEntity() ],
     isArray: true,
