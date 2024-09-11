@@ -40,8 +40,7 @@ class AppPaginatorComponent extends CustomElement<AppPaginatorComponentProps> im
   public set pagesize(pagesize: string) {
     this.updateElementCounter()
     this.updateButtonsDisabled()
-    
-    this.querySelector<HTMLSelectElement>('.pages')!.value = pagesize
+    this.updatePageSize();
   }
   
   public get pagesize(): string {
@@ -50,18 +49,8 @@ class AppPaginatorComponent extends CustomElement<AppPaginatorComponentProps> im
   
   //
   public set pagesizes(pagesizes: string) {
-    const pagesize = this.pagesize
-    
-    this.querySelector<HTMLSelectElement>('.pages')!.replaceChildren(
-      ...pagesizes.split(',').map(size => {
-        const element: HTMLOptionElement = document.createElement('option')
-        element.value = size.trim()
-        element.innerText = size
-        return element
-      }),
-    )
-    
-    this.pagesize = pagesize
+    this.updatePageSizes(pagesizes);
+    this.updatePageSize();
   }
   
   public get pagesizes(): string {
@@ -70,6 +59,22 @@ class AppPaginatorComponent extends CustomElement<AppPaginatorComponentProps> im
   
   //
   public constructor() { super(componentTemplate) }
+  
+  private updatePageSize(): void {
+    console.log('updatePageSize', this.pagesize)
+    this.querySelector<HTMLSelectElement>('.pages')!.value = this.pagesize
+  }
+  
+  private updatePageSizes(pagesizes: string): void {
+    this.querySelector<HTMLSelectElement>('.pages')!.replaceChildren(
+      ...pagesizes.split(',').map(size => {
+        const element: HTMLOptionElement = document.createElement('option')
+        element.value = size.trim()
+        element.innerText = size
+        return element
+      }),
+    )
+  }
   
   private updateElementCounter(): void {
     let end = parseInt(this.page) * parseInt(this.pagesize)
