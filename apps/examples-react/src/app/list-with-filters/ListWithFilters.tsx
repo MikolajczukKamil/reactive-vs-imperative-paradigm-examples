@@ -62,10 +62,10 @@ const headCells = [
 export function ListWithFilters() {
   const [ rows, setRows ] = useState<Etf[]>([]);
   const [ allItems, setAllItems ] = useState(0);
-  const [ search, setSearch ] = useState('');
-  const [ minPrice, setMinPrice ] = useState('');
-  const [ maxPrice, setMaxPrice ] = useState('');
-  const [ currency, setCurrency ] = useState('');
+  const [ filters, setFilters ] = useState({
+    search: '', priceMin: '',
+    priceMax: '', currency: '',
+  });
   const [ sortProperty, setSortProperty ] = useState<undefined | string>(undefined);
   const [ sortDirection, setSortDirection ] = useState<undefined | 'asc' | 'desc'>(undefined);
   const [ page, setPage ] = useState(0);
@@ -73,11 +73,12 @@ export function ListWithFilters() {
   const [ isLoading, setIsLoading ] = useState(false);
   const [ isError, setIsError ] = useState(false);
   const [ retry, setRetry ] = useState(0);
+ 
   
   const etfService = useEtfsService();
   
   function handleCurrencyChange(e: SelectChangeEvent<string>): void {
-    setCurrency(e.target?.value ?? '');
+    setFilters( f => ({ ...f, currency: e.target?.value ?? '' }));
   }
   
   function handleChangePage(_: unknown, newPage: number) {
@@ -90,53 +91,54 @@ export function ListWithFilters() {
   }
   
   function handleClear(): void {
-    setSearch('');
-    setMinPrice('');
-    setMaxPrice('');
-    setCurrency('');
+    setFilters({
+      search: '',
+      priceMin: '',
+      priceMax: '',
+      currency: '',
+    });
     setSortProperty(undefined);
     setSortDirection(undefined);
   }
   
-  useDebouncedEffect(() => {
-      console.log({ retry });
-      setIsLoading(true);
-      setIsError(false);
-      
-      const sub = etfService
-        .getEtfList(
-          page + 1,
-          pageSize,
-          {
-            search: search || null,
-            priceMin: parseFloat(minPrice) || null,
-            priceMax: parseFloat(maxPrice) || null,
-            currency: currency || null
-          },
-          sortProperty,
-          sortDirection
-        )
-        .subscribe({
-          next: page => {
-            console.log({ page });
-            
-            setRows(page.items);
-            setAllItems(page.itemsCount);
-            setIsLoading(false);
-          },
-          error: (e) => {
-            console.log({ e });
-            
-            setIsLoading(false);
-            setIsError(true);
-          }
-        });
-      
-      return () => { sub.unsubscribe(); };
-    },
-    [ etfService, page, pageSize, search, minPrice, maxPrice, currency, sortProperty, sortDirection, retry ],
-    200
-  );
+useDebouncedEffect(() => {
+    console.log({ retry });
+    setIsLoading(true);
+    
+    const sub = etfService
+      .getEtfList(
+        page + 1,
+        pageSize,
+        {
+          ...filters,
+          priceMin: parseFloat(filters.priceMin) || null,
+          priceMax: parseFloat(filters.priceMax) || null,
+        },
+        sortProperty,
+        sortDirection
+      )
+      .subscribe({
+        next: page => {
+          console.log({ page });
+          
+          setRows(page.items);
+          setAllItems(page.itemsCount);
+          setIsLoading(false);
+          setIsError(false);
+        },
+        error: (e) => {
+          console.log({ e });
+          
+          setIsLoading(false);
+          setIsError(true);
+        }
+      });
+    
+    return () => { sub.unsubscribe(); };
+  },
+  [ etfService, page, pageSize, filters, sortProperty, sortDirection, retry ],
+  200
+);
   
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = pageSize - rows.length;
@@ -175,30 +177,30 @@ export function ListWithFilters() {
                 </InputAdornment>
               )
             } }
-            value={ search }
-            onChange={ e => setSearch(e.target.value) }
+            value={ filters.search }
+            onChange={ e => setFilters(f => ({ ...f, search: e.target.value })) }
           />
           
           <TextField
             label="Cena minimalna"
             variant="outlined"
             type="number"
-            value={ minPrice }
-            onChange={ e => setMinPrice(e.target.value) }
+            value={ filters.priceMin }
+            onChange={ e => setFilters(f => ({ ...f, priceMin: e.target.value })) }
           />
           <TextField
             label="Cena maksymalna"
             variant="outlined"
             type="number"
-            value={ maxPrice }
-            onChange={ e => setMaxPrice(e.target.value) }
+            value={ filters.priceMax }
+            onChange={ e => setFilters(f => ({ ...f, priceMax: e.target.value })) }
           />
           
           <FormControl>
             <InputLabel>Waluta</InputLabel>
             
             <Select
-              value={ currency || '' }
+              value={ filters.currency || '' }
               label="Waluta"
               onChange={ handleCurrencyChange }
               sx={ { minWidth: 120 } }

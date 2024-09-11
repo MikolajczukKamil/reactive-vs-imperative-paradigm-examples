@@ -3,11 +3,24 @@ import { Etf }                            from '@org/common-lib';
 import { Button, initMDB, Input, Ripple } from 'mdb-ui-kit';
 
 import { CustomElement, defineComponent } from '../utils';
-
-import componentTemplate     from './list-with-filters.html';
-import './list-with-filters.scss';
 import { injectEtfsService } from './use-etfs';
+
+import componentTemplate from './list-with-filters.html';
+import './list-with-filters.scss';
 import '../app-paginator';
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+function debounce<T extends Function>(fn: T, delay: number): T {
+  let timeoutId: NodeJS.Timeout | undefined;
+  
+  return function (this: any, ...args: any[]): void {
+    clearTimeout(timeoutId);
+    
+    timeoutId = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  } as any as T;
+}
 
 
 const pageSizes = [ 5, 10, 20, 50, 100 ];
@@ -16,13 +29,15 @@ class ListWithFilterComponent extends CustomElement {
   public isLoading = false;
   public instruments: Etf[] = [];
   public page = 1;
-  public pageSize = pageSizes[0];
+  public pageSize = pageSizes[1];
   public sortProperty?: string;
   public sortDirection?: 'asc' | 'desc';
-  public search = '';
-  public minPrice = '';
-  public maxPrice = '';
-  public currency = '';
+  public filters = {
+    search: '',
+    minPrice: '',
+    maxPrice: '',
+    currency: '',
+  }
   public allItems = 0;
   public isError = false;
   
@@ -34,7 +49,7 @@ class ListWithFilterComponent extends CustomElement {
     super.connectedCallback();
     
     this.bindChangeValue('#search-input', e => {
-      this.search = e.value;
+      this.filters.search = e.value;
       
       if (this.page !== 1) {
         this.page = 1;
@@ -45,7 +60,7 @@ class ListWithFilterComponent extends CustomElement {
     });
     
     this.bindChangeValue('#price-min-input', e => {
-      this.minPrice = e.value;
+      this.filters.minPrice = e.value;
       
       if (this.page !== 1) {
         this.page = 1;
@@ -56,7 +71,7 @@ class ListWithFilterComponent extends CustomElement {
     });
     
     this.bindChangeValue('#price-max-input', e => {
-      this.maxPrice = e.value;
+      this.filters.maxPrice = e.value;
       
       if (this.page !== 1) {
         this.page = 1;
@@ -67,7 +82,7 @@ class ListWithFilterComponent extends CustomElement {
     });
     
     this.bindChangeValue('#input-currency', e => {
-      this.currency = e.value;
+      this.filters.currency = e.value;
       
       if (this.page !== 1) {
         this.page = 1;
@@ -78,10 +93,12 @@ class ListWithFilterComponent extends CustomElement {
     });
     
     this.querySelector('#clear-filters')!.addEventListener('click', () => {
-      this.search = '';
-      this.currency = '';
-      this.minPrice = '';
-      this.maxPrice = '';
+      this.filters = {
+        search: '',
+        minPrice: '',
+        maxPrice: '',
+        currency: '',
+      }
       
       if (this.page !== 1) {
         this.page = 1;
@@ -130,10 +147,10 @@ class ListWithFilterComponent extends CustomElement {
   }
   
   private reloadFilters(): void {
-    this.querySelector<HTMLInputElement>('#search-input')!.value = this.search;
-    this.querySelector<HTMLInputElement>('#price-min-input')!.value = this.minPrice;
-    this.querySelector<HTMLInputElement>('#price-max-input')!.value = this.maxPrice;
-    this.querySelector<HTMLSelectElement>('#input-currency')!.value = this.currency;
+    this.querySelector<HTMLInputElement>('#search-input')!.value = this.filters.search;
+    this.querySelector<HTMLInputElement>('#price-min-input')!.value = this.filters.minPrice;
+    this.querySelector<HTMLInputElement>('#price-max-input')!.value = this.filters.maxPrice;
+    this.querySelector<HTMLSelectElement>('#input-currency')!.value = this.filters.currency;
   }
   
   private updatePaginator(): void {
@@ -144,55 +161,54 @@ class ListWithFilterComponent extends CustomElement {
     paginator.setAttribute('pagesize', this.pageSize.toString());
   }
   
-  private clearCallback?: () => void;
+  private reloadInstrumentClearCallback?: () => void;
   
-  private reloadInstrument(): void {
-    this.clearCallback?.();
-    let active = true;
-    
-    this.clearCallback = () => {
-      active = false;
-    };
-    
-    this.isLoading = true;
-    this.isError = false;
-    
-    this.updateLoading();
-    this.updateError();
-    
-    this.etfService.getEtfList(this.page, this.pageSize, {
-            search: this.search || null,
-            priceMin: parseFloat(this.minPrice) || null,
-            priceMax: parseFloat(this.maxPrice) || null,
-            currency: this.currency || null
-          },
-          this.sortProperty,
-          this.sortDirection
-        )
-        .then((page) => {
-          if (active) {
-            console.log({ page })
-            
-            this.isLoading = false;
-            this.instruments = page.items;
-            this.allItems = page.itemsCount;
-            
-            this.updateList();
-            this.updateLoading();
-            this.updatePaginator();
-          }
-        })
-        .catch((error) => {
-          if (active) {
-            console.error(error);
-            
-            this.isError = true;
-            this.isLoading = false;
-            this.updateLoading();
-            this.updateError();
-          }
-        });
-  }
+private reloadInstrument = debounce((): void =>  {
+  this.reloadInstrumentClearCallback?.();
+  let active = true;
+  
+  this.reloadInstrumentClearCallback = () => {
+    active = false;
+  };
+  
+  this.isLoading = true;
+  this.updateLoading();
+  
+  this.etfService.getEtfList(
+        this.page,
+        this.pageSize,
+        {
+          ...this.filters,
+          priceMin: parseFloat(this.filters.minPrice) || null,
+          priceMax: parseFloat(this.filters.maxPrice) || null,
+        },
+        this.sortProperty,
+        this.sortDirection
+      )
+      .then((page) => {
+        if (active) {
+          this.isLoading = false;
+          this.isError = false;
+          this.instruments = page.items;
+          this.allItems = page.itemsCount;
+          
+          this.updateList();
+          this.updateError();
+          this.updateLoading();
+          this.updatePaginator();
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          console.error(error);
+          
+          this.isError = true;
+          this.isLoading = false;
+          this.updateLoading();
+          this.updateError();
+        }
+      });
+}, 200)
   
   private updateLoading(): void {
     const loadingElement = this.querySelector<HTMLElement>('#loading')!;
@@ -214,7 +230,6 @@ class ListWithFilterComponent extends CustomElement {
         return cell;
       })
     );
-    
   }
   
   private eventDetail(e: Event): string {
