@@ -1,15 +1,11 @@
-import { initMDB, Tab } from 'mdb-ui-kit'
-
 import componentTemplate from './app.html'
 
 import { CustomElement, defineComponent } from './utils'
 import './app.scss'
-import './list-with-filters'
 
 
-export interface AppComponentProps {
-  title: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AppComponentProps { /**/ }
 
 class AppComponent extends CustomElement<AppComponentProps> implements AppComponentProps {
   public constructor() { super(componentTemplate) }
@@ -17,7 +13,21 @@ class AppComponent extends CustomElement<AppComponentProps> implements AppCompon
   protected override connectedCallback(): void {
     super.connectedCallback()
     
-    initMDB({ Tab })
+    const element = this.querySelector<HTMLInputElement>('#test-input')!;
+    
+    element.addEventListener('change', () => {
+      this.updateList(element.value.split(''))
+    })
+  }
+  
+  private updateList(values: string[]): void {
+    this.querySelector<HTMLUListElement>('#test-list')!.replaceChildren(...values.map(elementName => {
+      const element = document.createElement('li');
+      
+      element.innerText = elementName;
+      
+      return element;
+    }))
   }
 }
 

@@ -1,13 +1,14 @@
-import { Component }          from '@angular/core';
-import { MatTabsModule }      from '@angular/material/tabs'
+import { Component }   from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-import { ListWithFiltersComponent } from './list-with-filters'
 
 @Component({
   standalone: true,
-  imports: [ MatTabsModule, ListWithFiltersComponent ],
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  styleUrls: [ './app.component.scss' ],
+  imports: [ FormsModule ]
 })
-export class AppComponent {}
+export class AppComponent {
+  value = '';
+}

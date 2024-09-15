@@ -1,38 +1,19 @@
-import { Box, Container, useTheme, createTheme, Tab, Tabs, ThemeProvider } from '@mui/material';
-import {
-  plPL
-}                                                                          from '@mui/material/locale';
-import { useMemo }                                               from 'react';
-
-import { ListWithFilters } from './list-with-filters';
+import { useState } from 'react';
 
 export function App() {
-  const theme = useTheme();
-  const themeWithLocale = useMemo(
-    () => createTheme(theme, plPL),
-    [ theme ]
-  );
+  const [ value, setValue ] = useState('');
+  
+  const values = value.split('');
   
   return (
-    <ThemeProvider theme={ themeWithLocale }>
-      <Tabs sx={ { maxWidth: 1000, width: '100%', margin: 'auto' } }
-      >
-        <Tab
-          sx={ { flex: 1, maxWidth: 1000 } }
-          label="Lista z filtrami"
-        />
-        <Tab
-          sx={ { flex: 1, maxWidth: 1000 } }
-          label="Inny przykład"
-        />
-      </Tabs>
+    <>
+      <input value={values} onChange={e => setValue(e.target.value)} />
       
-      <Container maxWidth="xl">
-        <Box sx={ { p: 3 } }>
-          <ListWithFilters />
-          <p>Tab2</p>
-        </Box>
-      </Container>
-    </ThemeProvider>
+      <ul>
+        { values.map((el, i) => (
+          <li key={ i }>{ el }</li>
+        )) }
+      </ul>
+    </>
   );
 }

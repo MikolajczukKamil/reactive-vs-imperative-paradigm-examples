@@ -23,8 +23,6 @@
           }
         ],
         "styles": [
-          "@angular/material/prebuilt-themes/indigo-pink.css",
-          "apps/examples-angular/src/styles.scss"
         ],
         "scripts": []
       },
