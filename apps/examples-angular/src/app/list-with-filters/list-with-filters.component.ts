@@ -1,67 +1,53 @@
-import { AsyncPipe, JsonPipe } from '@angular/common';
+import { AsyncPipe, JsonPipe }                                               from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  Component, computed, effect,
+  Component,
+  computed,
+  effect,
   inject,
   Injectable,
   signal,
   Signal,
   ViewChild
-} from '@angular/core';
+}                                                                            from '@angular/core';
 import {
   toObservable,
   toSignal
-}                              from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule
-}                              from '@angular/forms';
+}                                                                            from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule }          from '@angular/forms';
 import {
   MatButtonModule
-}                              from '@angular/material/button';
+}                                                                            from '@angular/material/button';
 import {
   MatCardModule
-}                              from '@angular/material/card';
+}                                                                            from '@angular/material/card';
 import {
   MatIconModule
-}                              from '@angular/material/icon';
+}                                                                            from '@angular/material/icon';
 import {
   MatInputModule
-}                              from '@angular/material/input';
+}                                                                            from '@angular/material/input';
 import {
   MatPaginator,
   MatPaginatorIntl,
   PageEvent
-}                              from '@angular/material/paginator';
+}                                                                            from '@angular/material/paginator';
 import {
   MatProgressBarModule
-}                              from '@angular/material/progress-bar';
+}                                                                            from '@angular/material/progress-bar';
 import {
   MatSelectModule
-}                              from '@angular/material/select';
+}                                                                            from '@angular/material/select';
 import {
   MatSort,
   MatSortModule,
   Sort
-}                              from '@angular/material/sort';
+}                                                                            from '@angular/material/sort';
 import {
   MatTableModule
-}                              from '@angular/material/table';
-import {
-  Etf
-}                              from '@org/common-lib';
-import {
-  debounceTime,
-  map,
-  Observable,
-  of,
-  retry,
-  Subject,
-  switchMap,
-  tap
-} from 'rxjs';
+}                                                                            from '@angular/material/table';
+import { Etf }                                                               from '@org/common-lib';
+import { debounceTime, map, Observable, of, retry, Subject, switchMap, tap } from 'rxjs';
 
 import { EtfService } from './etf.service';
 
@@ -100,10 +86,10 @@ interface Values {
     priceMin?: number | null
     priceMax?: number | null
     currency?: string | null
-  }
-  page: number
-  pageSize: number
-  sort: Sort | null
+  };
+  page: number;
+  pageSize: number;
+  sort: Sort | null;
 }
 
 @Component({
@@ -152,8 +138,6 @@ export class ListWithFiltersComponent {
   protected readonly allItems = signal<number>(0);
   protected readonly sort = signal<Sort | null>(null);
   
-  protected readonly retry$ = new Subject<void>();
-  
   protected readonly filters = new FormGroup({
     search: new FormControl<string>('', { nonNullable: true }),
     priceMin: new FormControl<number | null>(null),
@@ -161,52 +145,57 @@ export class ListWithFiltersComponent {
     currency: new FormControl<string | null>(null)
   });
   
-private readonly filtersValue = toSignal(this.filters.valueChanges, { initialValue: this.filters.value });
-
-constructor() {
-  effect(() => {
-    const change = [this.sort(), this.filtersValue()];
-    if (!!change) this.page.set(1);
-  }, { allowSignalWrites: true });
-}
-
-private readonly values = computed(() => ({
-  filters: this.filtersValue(), page: this.page(),
-  pageSize: this.pageSize(), sort: this.sort(),
-}))
-
-protected readonly loadedItems: Signal<Etf[]> = toSignal(
-  toObservable(this.values).pipe(
-    debounceTime(DEBOUNCE_TIME),
-    switchMap((values) => this.loadInstruments(values))
-  ), { initialValue: [] } );
-
-private loadInstruments(values: Values): Observable<Etf[]> {
-  return of(null).pipe(
-    tap(() => { this.loading.set(true) }),
-    switchMap(() =>
-      this.etfService.getEtfList(
-        values.page,
-        values.pageSize,
-        values.filters,
-        values.sort?.active,
-        values.sort?.direction
-      ) ),
-    map((response) => {
-      this.allItems.set(response.itemsCount)
-      this.loading.set(false)
-      this.error.set(false)
-      return response.items
-    }),
-    retry({
-      delay: () => {
-        this.loading.set(false)
-        this.error.set(true)
-        return this.retry$
-      },
-    })
-  )
-}
+  private readonly filtersValue = toSignal(this.filters.valueChanges, { initialValue: this.filters.value });
+  
+  protected readonly retry$ = new Subject<void>();
+  
+  protected readonly loadedItems: Signal<Etf[]> = toSignal(
+    toObservable(
+      computed((): Values => ({
+        filters: this.filtersValue(),
+        page: this.page(),
+        pageSize: this.pageSize(),
+        sort: this.sort()
+      }))
+    ).pipe(
+      debounceTime(DEBOUNCE_TIME),
+      switchMap((values) => this.loadInstruments(values))
+    ), { initialValue: [] }
+  );
+  
+  constructor() {
+    effect(() => {
+      const change = [ this.sort(), this.filtersValue() ];
+      if (!!change) this.page.set(1);
+    }, { allowSignalWrites: true });
+  }
+  
+  private loadInstruments(values: Values): Observable<Etf[]> {
+    return of(null).pipe(
+      tap(() => { this.loading.set(true); }),
+      switchMap(() =>
+        this.etfService.getEtfList(
+          values.page,
+          values.pageSize,
+          values.filters,
+          values.sort?.active,
+          values.sort?.direction
+        )),
+      map((response) => {
+        this.allItems.set(response.itemsCount);
+        this.loading.set(false);
+        this.error.set(false);
+        return response.items;
+      }),
+      retry({
+        delay: () => {
+          this.loading.set(false);
+          this.error.set(true);
+          return this.retry$;
+        }
+      })
+    );
+  }
   
   protected resetFilters(): void {
     this.filters.reset();

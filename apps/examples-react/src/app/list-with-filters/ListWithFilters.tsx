@@ -63,8 +63,10 @@ export function ListWithFilters() {
   const [ rows, setRows ] = useState<Etf[]>([]);
   const [ allItems, setAllItems ] = useState(0);
   const [ filters, setFilters ] = useState({
-    search: '', priceMin: '',
-    priceMax: '', currency: '',
+    search: '',
+    priceMin: '',
+    priceMax: '',
+    currency: '',
   });
   const [ sortProperty, setSortProperty ] = useState<undefined | string>(undefined);
   const [ sortDirection, setSortDirection ] = useState<undefined | 'asc' | 'desc'>(undefined);
@@ -73,7 +75,6 @@ export function ListWithFilters() {
   const [ isLoading, setIsLoading ] = useState(false);
   const [ isError, setIsError ] = useState(false);
   const [ retry, setRetry ] = useState(0);
- 
   
   const etfService = useEtfsService();
   
